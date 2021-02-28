@@ -90,7 +90,7 @@ namespace Main {
                     default:
                         (new ActionError())->ExecuteError(
                             ERROR_INCORRECT_ACTION,
-                            "check your route script",
+                            "incorrect api usage detected, use /api/*.php address or check your route script",
                             $ctx
                         );
                 }

@@ -1,0 +1,4 @@
+Options All -Indexes
+
+RewriteCond %{REQUEST_URI} !^api
+RewriteRule (.*) api/incorrect.php
