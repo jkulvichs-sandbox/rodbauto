@@ -1,0 +1,19 @@
+{
+  "debug": {
+    "errorsDisplay": true,
+    "errorsTypes": [
+      "all",
+      "parse",
+      "error",
+      "notice",
+      "strict",
+      "deprecated"
+    ]
+  },
+  "postgres": {
+    "host": "192.168.2.13",
+    "dbname": "p_360_sp",
+    "user": "admin",
+    "password": ""
+  }
+}
