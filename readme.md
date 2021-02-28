@@ -1,4 +1,4 @@
-![License CC ](https://img.shields.io/badge/LICENSE-CC_BY_NC_ND-%23777BB4?style=flat-square&logo=php)
+![License CC ](https://img.shields.io/badge/LICENSE-CC_BY_NC_ND-%23EF9421?style=flat-square&logo=php)
 ![PHP Version 5.6](https://img.shields.io/badge/PHP-5.6-%23777BB4?style=flat-square&logo=php)
 ![Designed For InternetExplorer 6](https://img.shields.io/badge/BROWSER-IE6-%230076D6?style=flat-square&logo=Internet-Explorer)
 
