@@ -26,7 +26,7 @@
   Проверка работоспособности сервера, вывод тех.страницы
 - `GET /api/persons/search?query={query}`
     - `{query}` - Универсальный поиск по ФИО, году рождения, личному номеру итд.
-- ...
+    - //TODO: filters: `{birth_year}`, `{recruiting_office}`, `{local_command}`
 
 ## ➕ Создание нового действия
 

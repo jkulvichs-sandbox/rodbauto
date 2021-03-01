@@ -14,6 +14,7 @@ namespace Actions {
         /**
          * @param Context $ctx Request context
          * @return mixed|void
+         * @throws ErrorException
          */
         public function Execute($ctx)
         {
@@ -45,7 +46,7 @@ namespace Actions {
                 return;
             }
 
-            // limit of PG response models of each type
+            // limit of PG responses models of each type
             $pgLimit = 10;
 
             // searching
