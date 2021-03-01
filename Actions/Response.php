@@ -24,18 +24,18 @@ namespace Actions {
         }
 
         /**
-         * Mixed response body
+         * Mixed response data
          * @var mixed
          */
-        public $body;
+        public $data;
 
         /**
          * Response constructor.
-         * @param mixed $body
+         * @param mixed $data
          */
-        public function __construct($body = null)
+        public function __construct($data = null)
         {
-            $this->body = $body;
+            $this->data = $data;
         }
 
         /**
