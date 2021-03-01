@@ -7,11 +7,13 @@ namespace Main {
     require_once "Actions/Actions.php";
 
     use Actions\ActionError;
+    use Actions\ActionPersonsSearch;
     use Actions\Context;
     use Actions\ActionTest;
     use AppConfig;
     use ErrorException;
     use Exception;
+    use Models\PersonPriz01;
     use Postgres\Postgres;
 
     class App
@@ -70,10 +72,6 @@ namespace Main {
          */
         public static function Main($action, $method, $args, $body)
         {
-            //TODO: В поиске указывается номер команды и выводятся все люди из неё
-            // Какой столбец хранит номер локальной команды?
-//            $model = (new PersonPriz01($pg))->get("849013300000025");
-//            var_dump($model);
             try {
 
                 // Create an Postgres ORM
@@ -86,6 +84,9 @@ namespace Main {
                 switch ($action) {
                     case ACTION_TEST:
                         (new ActionTest())->Execute($ctx);
+                        break;
+                    case ACTION_PERSONS_SEARCH:
+                        (new ActionPersonsSearch())->Execute($ctx);
                         break;
                     default:
                         (new ActionError())->ExecuteError(

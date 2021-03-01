@@ -46,8 +46,8 @@ namespace Models {
                 "p055" => &$this->personalIDNumber,
                 "cat_vu" => &$this->drivingLicenses,
                 "k101" => &$this->birthYear,
-                "p096" => &$this->passportSerial,
-                "p013" => &$this->passportNumber,
+                "p008" => &$this->passportSerial,
+                "p099" => &$this->passportNumber,
             ];
         }
 
@@ -61,6 +61,65 @@ namespace Models {
         {
             $eID = $this->escape($id);
             return $this->getBy($this, "p001 = '$eID'");
+        }
+
+        /**
+         * Find all records by partial full name
+         * @param string $fullName Full name separated by whitespace
+         * @param string $where Additional statements
+         * @param string $limit Max count of records
+         * @param int $offset Records result offset
+         * @return array Array of records that's match
+         * @throws ErrorException
+         */
+        public function findAllByFullName($fullName, $where = "", $limit = "ALL", $offset = 0)
+        {
+            // Array of searchable fields
+            $fields = ["p006", "p005", "p007"];
+            // Take array of names
+            $names = explode(" ", trim($fullName));
+
+            // Make array of search parts for each field with each name
+            $conditions = [];
+            foreach ($fields as $field) {
+                foreach ($names as $name) {
+                    $eName = $this->escape($name);
+                    $conditions[] = "$field ILIKE '%$eName%'";
+                }
+            }
+            // Resulting query with all possible searches by name
+            $searchQuery = " (" . implode(" OR ", $conditions) . ") " . (empty($where) ? "" : " AND ($where)");
+
+            return $this->select($this, $searchQuery, $limit, $offset);
+        }
+
+        /**
+         * Find all records by partial birth year
+         * @param string $birthYear Partial birth year. Allowed: dddd and dd and other
+         * @param string $where Additional statements
+         * @param string $limit Max count of records
+         * @param int $offset Records result offset
+         * @return array Array of records that's match
+         * @throws ErrorException
+         */
+        public function findAllByBirthYear($birthYear, $where = "", $limit = "ALL", $offset = 0)
+        {
+            $eBirthYear = $this->escape($birthYear);
+            return $this->select($this, "cast(k101 AS text) ILIKE '%$eBirthYear%'", $limit, $offset);
+        }
+
+        /** Find all records by partial personal ID
+         * @param string $personalID Partial personal ID with chars and numbers
+         * @param string $where Additional statements
+         * @param string $limit Max count of records
+         * @param int $offset Records result offset
+         * @return array Array of records that's match
+         * @throws ErrorException
+         */
+        public function findAllByPersonalID($personalID, $where = "", $limit = "ALL", $offset = 0)
+        {
+            $ePersonalID = $this->escape($personalID);
+            return $this->select($this, "(p054 || '-' || p055) ILIKE '%$ePersonalID%'", $limit, $offset);
         }
 
         /**
@@ -124,13 +183,13 @@ namespace Models {
         public $birthYear;
 
         /**
-         * Passport serial (p096)
+         * Passport serial (p008)
          * @var string
          */
         public $passportSerial;
 
         /**
-         * Passport number (p013)
+         * Passport number (p099)
          * @var string
          */
         public $passportNumber;

@@ -57,7 +57,7 @@ namespace Models {
          * @return array Array of selected models
          * @throws ErrorException
          */
-        protected function select($modelClass, $where = "", $limit = "ALL", $offset = 0)
+        public function select($modelClass, $where = "", $limit = "ALL", $offset = 0)
         {
             // construct DB fields to select
             $fieldsSelectors = [];

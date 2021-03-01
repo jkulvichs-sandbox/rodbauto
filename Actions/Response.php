@@ -14,6 +14,16 @@ namespace Actions {
         }
 
         /**
+         * Send response to client
+         */
+        public function Reply()
+        {
+            http_response_code($this->httpStatusCode);
+            header('Content-type: application/json');
+            print($this);
+        }
+
+        /**
          * Mixed response body
          * @var mixed
          */
@@ -39,13 +49,20 @@ namespace Actions {
         ];
 
         /**
+         * @var int HTTP status code to return
+         */
+        private $httpStatusCode = 200;
+
+        /**
          * Mark tis response as an error response
+         * @param int $httpCode HTTP status code
          * @param string $code Error code
          * @param string $message Description of the error
          * @return Response
          */
-        public function AddError($code = "common", $message = "")
+        public function AddError($httpCode, $code = "common", $message = "")
         {
+            $this->httpStatusCode = $httpCode;
             $this->error["status"] = true;
             $this->error["code"] = $code;
             $this->error["message"] = $message;

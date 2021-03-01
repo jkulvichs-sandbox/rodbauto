@@ -14,7 +14,7 @@ namespace Actions {
          */
         public function Execute($ctx)
         {
-            print((new Response())->AddError()->AddContext($ctx));
+            (new Response())->AddError(400)->AddContext($ctx)->Reply();
         }
 
         /**
@@ -24,9 +24,9 @@ namespace Actions {
          */
         public function ExecuteError($code, $message, $ctx = null)
         {
-            $errResp = (new Response())->AddError($code, $message);
+            $errResp = (new Response())->AddError(400, $message);
             if ($ctx !== null) $errResp->AddContext($ctx);
-            print($errResp);
+            $errResp->Reply();
         }
     }
 

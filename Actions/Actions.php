@@ -20,4 +20,7 @@ namespace Actions {
     require_once "ActionTest.php";
     define("ACTION_TEST", "test");
 
+    require_once "ActionPersonsSearch.php";
+    define("ACTION_PERSONS_SEARCH", "persons_search");
+
 }
