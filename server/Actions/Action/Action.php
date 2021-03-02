@@ -1,6 +1,6 @@
 <?php
 
-namespace Actions {
+namespace Action {
 
     /**
      * Class Action to define other actions.

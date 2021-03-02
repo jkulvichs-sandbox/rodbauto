@@ -1,6 +1,9 @@
 <?php
 
-namespace Actions {
+namespace Action {
+
+    use Actions\Context;
+    use Actions\Response;
 
     /**
      * Class ActionError to reply error

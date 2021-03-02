@@ -4,17 +4,15 @@ namespace Main {
 
     require_once "Config.php";
     require_once "Postgres/Postgres.php";
-    require_once "Actions/Actions.php";
+    require_once "Actions/all.php";
     require_once "Structures/all.php";
 
-    use Actions\ActionError;
-    use Actions\ActionPersonsSearch;
+    use Action\ActionError;
+    use Action\ActionPersonsSearch;
     use Actions\Context;
-    use Actions\ActionTest;
     use AppConfig;
     use ErrorException;
     use Exception;
-    use Models\PersonPriz01;
     use Postgres\Postgres;
 
     class App
@@ -84,9 +82,6 @@ namespace Main {
 
                 // select action and redirect control
                 switch ($action) {
-                    case ACTION_TEST:
-                        (new ActionTest())->Execute($ctx);
-                        break;
                     case ACTION_PERSONS_SEARCH:
                         (new ActionPersonsSearch())->Execute($ctx);
                         break;

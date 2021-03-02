@@ -1,7 +1,9 @@
 <?php
 
-namespace Actions {
+namespace Action {
 
+    use Actions\Context;
+    use Actions\Response;
     use ErrorException;
     use Exception;
     use Models\PersonInitRegPriz10;
