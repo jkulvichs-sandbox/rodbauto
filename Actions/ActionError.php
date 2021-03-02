@@ -18,13 +18,14 @@ namespace Actions {
         }
 
         /**
+         * @param int $httpCode HTTP response code
          * @param string $code Error code
          * @param string $message Error message
          * @param Context $ctx Request context
          */
-        public function ExecuteError($code, $message, $ctx = null)
+        public function ExecuteError($httpCode, $code, $message, $ctx = null)
         {
-            $errResp = (new Response())->AddError(400, $message);
+            $errResp = (new Response())->AddError($httpCode, $code, $message);
             if ($ctx !== null) $errResp->AddContext($ctx);
             $errResp->Reply();
         }

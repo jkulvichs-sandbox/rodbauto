@@ -74,23 +74,13 @@ namespace Models {
          */
         public function findAllByFullName($fullName, $where = "", $limit = "ALL", $offset = 0)
         {
-            // Array of searchable fields
-            $fields = ["p006", "p005", "p007"];
-            // Take array of names
-            $names = explode(" ", trim($fullName));
-
-            // Make array of search parts for each field with each name
-            $conditions = [];
-            foreach ($fields as $field) {
-                foreach ($names as $name) {
-                    $eName = $this->escape($name);
-                    $conditions[] = "$field ILIKE '%$eName%'";
-                }
-            }
-            // Resulting query with all possible searches by name
-            $searchQuery = " (" . implode(" OR ", $conditions) . ") " . (empty($where) ? "" : " AND ($where)");
-
-            return $this->select($this, $searchQuery, $limit, $offset);
+            $eFullName = $this->escape($fullName);
+            return $this->select(
+                $this,
+                "(p005 || ' ' || p006 || ' ' || p007) ILIKE '%$eFullName%'" . (empty($where) ? "" : " AND ($where)"),
+                $limit,
+                $offset
+            );
         }
 
         /**
@@ -105,7 +95,12 @@ namespace Models {
         public function findAllByBirthYear($birthYear, $where = "", $limit = "ALL", $offset = 0)
         {
             $eBirthYear = $this->escape($birthYear);
-            return $this->select($this, "cast(k101 AS text) ILIKE '%$eBirthYear%'", $limit, $offset);
+            return $this->select(
+                $this,
+                "cast(k101 AS text) ILIKE '%$eBirthYear%'" . (empty($where) ? "" : " AND ($where)"),
+                $limit,
+                $offset
+            );
         }
 
         /** Find all records by partial personal ID
@@ -119,7 +114,12 @@ namespace Models {
         public function findAllByPersonalID($personalID, $where = "", $limit = "ALL", $offset = 0)
         {
             $ePersonalID = $this->escape($personalID);
-            return $this->select($this, "(p054 || '-' || p055) ILIKE '%$ePersonalID%'", $limit, $offset);
+            return $this->select(
+                $this,
+                "(p054 || '-' || p055) ILIKE '%$ePersonalID%'" . (empty($where) ? "" : " AND ($where)"),
+                $limit,
+                $offset
+            );
         }
 
         /**

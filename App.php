@@ -5,6 +5,7 @@ namespace Main {
     require_once "Config.php";
     require_once "Postgres/Postgres.php";
     require_once "Actions/Actions.php";
+    require_once "Structures/all.php";
 
     use Actions\ActionError;
     use Actions\ActionPersonsSearch;
@@ -56,6 +57,7 @@ namespace Main {
 
             } catch (Exception $e) {
                 (new ActionError())->ExecuteError(
+                    500,
                     ERROR_INIT,
                     "can't init app: {$e->getMessage()} at {$e->getFile()}:{$e->getLine()}"
                 );
@@ -98,6 +100,7 @@ namespace Main {
 
             } catch (Exception $e) {
                 (new ActionError())->ExecuteError(
+                    500,
                     ERROR_APP,
                     "app error: {$e->getMessage()} at {$e->getFile()}:{$e->getLine()}"
                 );
