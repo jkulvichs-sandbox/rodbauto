@@ -2,12 +2,9 @@
   "debug": {
     "errorsDisplay": true,
     "errorsTypes": [
-      "all",
       "parse",
       "error",
-      "notice",
-      "strict",
-      "deprecated"
+      "strict"
     ]
   },
   "postgres": {

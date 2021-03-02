@@ -60,7 +60,7 @@ namespace Models {
         public function get($id)
         {
             $eID = $this->escape($id);
-            return $this->getBy($this, "p001 = '$eID'");
+            return $this->getBy($this, "p001 = $eID");
         }
 
         /**

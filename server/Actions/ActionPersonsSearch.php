@@ -3,6 +3,7 @@
 namespace Actions {
 
     use ErrorException;
+    use Exception;
     use Models\PersonInitRegPriz10;
     use Models\PersonPriz01;
     use Models\RecruitOfficeR8012;
@@ -105,9 +106,9 @@ namespace Actions {
 
             // searching for recruiting office name
             $recOfficesByName = (new RecruitOfficeR8012($ctx->pg))->findAllByName($query, "", $pgLimit);
-            $replyByRecOfficeName = [];
+            $replyByRecOfficesName = [];
             foreach ($recOfficesByName as $recOffice) {
-                $replyByRecOfficeName[$recOffice->name] = [];
+                $replyByRecOfficesName[$recOffice->name] = [];
                 //TODO: Здесь ограничить фильтрами
                 $persons = (new PersonPriz01($ctx->pg))->findAllByRecruitOfficeID($recOffice->id, "");
                 for ($i = 0; $i < count($persons); $i++) {
@@ -115,8 +116,12 @@ namespace Actions {
                     $card->person = $persons[$i];
                     $card->recruitOffice = $recOffice;
                     // searching for related models
-                    $card->initReg = (new PersonInitRegPriz10($ctx->pg))->get($card->person->id);
-                    $replyByRecOfficeName[$recOffice->name][] = $card;
+                    try {
+                        $card->initReg = (new PersonInitRegPriz10($ctx->pg))->get($card->person->id);
+                    } catch (Exception $e) {
+                        $card->initReg = null;
+                    }
+                    $replyByRecOfficesName[$recOffice->name][] = $card;
                 }
             }
 
@@ -127,7 +132,7 @@ namespace Actions {
                 "birthYear" => $replyByBirthYear,
                 "personalID" => $replyByPersonalID,
                 "localCommand" => $replyByLocalCommand,
-                "recruitOffice" => $replyByRecOfficeName,
+                "recruitOffices" => $replyByRecOfficesName,
             ];
 
             (new Response($resp))->Reply();
