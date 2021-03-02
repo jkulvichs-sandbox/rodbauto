@@ -65,7 +65,6 @@ namespace Models {
         public function findAllByLocalCommand($localCommand, $where = "", $limit = "ALL", $offset = 0)
         {
             $eLocalCommand = $this->escape("$localCommand");
-            print("LOCAL COMMAND\n\n");
             return $this->select(
                 $this,
                 "p100 ILIKE '%\"localCommand\": \"$eLocalCommand\"%'" . (empty($where) ? "" : " AND ($where)"),

@@ -10,6 +10,7 @@ namespace Postgres {
     require_once "Models/Model.php";
     require_once "Models/PersonPriz01.php";
     require_once "Models/PersonInitRegPriz10.php";
+    require_once "Models/RecruitOfficeR8012.php";
 
     use ErrorException;
 

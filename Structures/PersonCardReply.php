@@ -4,6 +4,7 @@ namespace Structures {
 
     use Models\PersonInitRegPriz10;
     use Models\PersonPriz01;
+    use Models\RecruitOfficeR8012;
 
     /**
      * Class PersonCardReply with info about person
@@ -22,6 +23,12 @@ namespace Structures {
          * @var PersonInitRegPriz10
          */
         public $initReg;
+
+        /**
+         * Model for recruit office
+         * @var RecruitOfficeR8012
+         */
+        public $recruitOffice;
     }
 
 }

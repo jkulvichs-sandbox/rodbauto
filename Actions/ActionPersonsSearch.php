@@ -5,6 +5,7 @@ namespace Actions {
     use ErrorException;
     use Models\PersonInitRegPriz10;
     use Models\PersonPriz01;
+    use Models\RecruitOfficeR8012;
     use Structures\PersonCardReply;
 
     /**
@@ -37,7 +38,10 @@ namespace Actions {
          */
         private function ExecuteGET($ctx)
         {
+            // power search query
             $query = $ctx->args["query"];
+            // results limit per each results type
+            $limit = $ctx->args["limit"];
 
             // exit if empty query
             if (empty($query)) {
@@ -49,7 +53,7 @@ namespace Actions {
             }
 
             // limit of PG responses models of each type
-            $pgLimit = 10;
+            $pgLimit = empty($limit) ? 5 : min($limit, 10);
 
             // searching for full name
             $personsByFullName = (new PersonPriz01($ctx->pg))->findAllByFullName($query, "", $pgLimit);
@@ -59,6 +63,7 @@ namespace Actions {
                 $card->person = $personsByFullName[$i];
                 // searching for related models
                 $card->initReg = (new PersonInitRegPriz10($ctx->pg))->get($card->person->id);
+                $card->recruitOffice = (new RecruitOfficeR8012($ctx->pg))->get(substr($card->person->num, 0, 8));
                 $replyByFullNames[] = $card;
             }
 
@@ -70,6 +75,7 @@ namespace Actions {
                 $card->person = $personsByBirthYear[$i];
                 // searching for related models
                 $card->initReg = (new PersonInitRegPriz10($ctx->pg))->get($card->person->id);
+                $card->recruitOffice = (new RecruitOfficeR8012($ctx->pg))->get(substr($card->person->num, 0, 8));
                 $replyByBirthYear[] = $card;
             }
 
@@ -81,6 +87,7 @@ namespace Actions {
                 $card->person = $personsByPersonalID[$i];
                 // searching for related models
                 $card->initReg = (new PersonInitRegPriz10($ctx->pg))->get($card->person->id);
+                $card->recruitOffice = (new RecruitOfficeR8012($ctx->pg))->get(substr($card->person->num, 0, 8));
                 $replyByPersonalID[] = $card;
             }
 
@@ -92,7 +99,25 @@ namespace Actions {
                 $card->initReg = $initRegsByLocalCommand[$i];
                 // searching for related models
                 $card->person = (new PersonPriz01($ctx->pg))->get($card->initReg->id);
+                $card->recruitOffice = (new RecruitOfficeR8012($ctx->pg))->get(substr($card->person->num, 0, 8));
                 $replyByLocalCommand[] = $card;
+            }
+
+            // searching for recruiting office name
+            $recOfficesByName = (new RecruitOfficeR8012($ctx->pg))->findAllByName($query, "", $pgLimit);
+            $replyByRecOfficeName = [];
+            foreach ($recOfficesByName as $recOffice) {
+                $replyByRecOfficeName[$recOffice->name] = [];
+                //TODO: Здесь ограничить фильтрами
+                $persons = (new PersonPriz01($ctx->pg))->findAllByRecruitOfficeID($recOffice->id, "");
+                for ($i = 0; $i < count($persons); $i++) {
+                    $card = new PersonCardReply();
+                    $card->person = $persons[$i];
+                    $card->recruitOffice = $recOffice;
+                    // searching for related models
+                    $card->initReg = (new PersonInitRegPriz10($ctx->pg))->get($card->person->id);
+                    $replyByRecOfficeName[$recOffice->name][] = $card;
+                }
             }
 
             // make response model
@@ -102,6 +127,7 @@ namespace Actions {
                 "birthYear" => $replyByBirthYear,
                 "personalID" => $replyByPersonalID,
                 "localCommand" => $replyByLocalCommand,
+                "recruitOffice" => $replyByRecOfficeName,
             ];
 
             (new Response($resp))->Reply();

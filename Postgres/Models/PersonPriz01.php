@@ -122,6 +122,25 @@ namespace Models {
             );
         }
 
+        /** Find all records by recruit office ID
+         * @param string $officeID Partial recruiting office ID
+         * @param string $where Additional statements
+         * @param string $limit Max count of records
+         * @param int $offset Records result offset
+         * @return array Array of records that's match
+         * @throws ErrorException
+         */
+        public function findAllByRecruitOfficeID($officeID, $where = "", $limit = "ALL", $offset = 0)
+        {
+            $eOfficeID = $this->escape("$officeID");
+            return $this->select(
+                $this,
+                "pnom ILIKE '$eOfficeID%'" . (empty($where) ? "" : " AND ($where)"),
+                $limit,
+                $offset
+            );
+        }
+
         /**
          * ID (p001)
          * @var string
