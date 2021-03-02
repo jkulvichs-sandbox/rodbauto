@@ -1,0 +1,56 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="ru">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>RODBAuto</title>
+</head>
+<body>
+
+<div id="app">
+    <div id="content">
+        <div id="header" class="block block-primary">RODBAuto :: Автоматизация Сборного Пункта</div>
+
+        <div class="block block-secondary">
+            <div style="margin: 0 0 5px 0">
+                Поиск призывников
+            </div>
+            <label>
+                <input id="power-search" type="text">
+            </label>
+        </div>
+
+        <div id="results">
+
+            <!-- PERSON'S RESULT TEMPLATE -->
+            <div class="block block-regular">
+                <h3>Иванов Иван Иванович, 1998</h3>
+                <span class="text-hint">УК-0000000</span>
+                <div class="text-hint">ВК Октябрьского и Железнодорожного районов города Пенза Пензенской области, г. Пенза</div>
+                <div class="text-hint">{{Команда}}</div>
+                <div class="text-hint">{{Примечание}}</div>
+            </div>
+
+            <div class="block block-hint">
+                Начните ввод ФИО, года рождения, личного номера, призывного пункта или внутренней команды
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- VENDOR -->
+<link href="client/vendor/normalize/styles/normalize.css" rel="stylesheet" type="text/css">
+<script src="client/vendor/jquery/scripts/jquery-1.12.4.min.js"></script>
+<!--[if IE]>
+<script src="client/vendor/css3pie/scripts/PIE.js"></script>
+<![endif]-->
+
+<!-- APP STYLES -->
+<link href="client/styles/positioning.css" rel="stylesheet" type="text/css">
+<link href="client/styles/main.css" rel="stylesheet" type="text/css">
+<!-- APP SCRIPTS -->
+<script src="client/scripts/helpers.js"></script>
+<script src="client/scripts/main.js"></script>
+
+</body>
+</html>

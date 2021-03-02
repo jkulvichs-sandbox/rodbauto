@@ -1,0 +1,54 @@
+body {
+    font-family: sans-serif;
+}
+
+#app {
+    width: 100%;
+    background: #FFFFFF;
+    overflow-x: hidden;
+}
+
+#content {
+    width: 90%;
+    margin: 0 auto 0 5%;
+}
+
+.block {
+    margin: 0 0 10px 0;
+    padding: 10px;
+}
+
+.text-hint {
+    color: #424242;
+}
+
+.block-hint {
+    text-align: center;
+    color: #B0BEC5;
+}
+
+.block-regular {
+    background: #E3F2FD;
+    color: #000000;
+}
+
+.block-primary {
+    background: #0D47A1;
+    color: #FFFFFF;
+}
+
+.block-secondary {
+    background: #1976D2;
+    color: #FFFFFF;
+}
+
+input {
+    border: none;
+    background: #FFFFFF;
+    color: #000000;
+    font-family: sans-serif;
+}
+
+#power-search {
+    width: 100%;
+}
