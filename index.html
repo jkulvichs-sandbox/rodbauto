@@ -7,35 +7,95 @@
 <body>
 
 <div id="app">
-    <div id="content">
-        <div id="header" class="block block-primary">RODBAuto :: Автоматизация Сборного Пункта</div>
+    <center>
+        <div id="content">
+            <div id="header" class="block block-primary">RODBAuto :: Автоматизация Сборного Пункта :: Пенза</div>
 
-        <div class="block block-secondary">
-            <div style="margin: 0 0 5px 0">
-                Поиск призывников
+            <!-- FILTERS -->
+            <div class="block block-secondary">
+
+                <h4>Поисковые фильтры</h4>
+
+                <table
+                        width="100%"
+                        border="0"
+                        cellpadding="0"
+                        cellspacing="0"
+                        style="color: #FFFFFF"
+                >
+                    <!-- Partial Name Filter -->
+                    <tr>
+                        <td width="200px"><label for="filter-name">ФИО</label></td>
+                        <td><input id="filter-name" type="text" style="width: 100%"></td>
+                    </tr>
+                    <!-- Birth Year Filter -->
+                    <tr>
+                        <td><label for="filter-birth-year">Год рождения</label></td>
+                        <td><input id="filter-birth-year" type="text" style="width: 100%"></td>
+                    </tr>
+                    <!-- Recruit Office Filter by ID -->
+                    <tr>
+                        <td><label for="filter-recruit-office">Военкомат</label></td>
+                        <td><select id="filter-recruit-office" style="width: 100%"></select></td>
+                    </tr>
+                    <!-- Personal ID Filter -->
+                    <tr>
+                        <td><label for="filter-personal-id">Жетон</label></td>
+                        <td><input id="filter-personal-id" type="text" style="width: 100%"></td>
+                    </tr>
+                    <!-- Local Command Filter -->
+                    <tr>
+                        <td><label for="filter-local-command">Внутренняя команда</label></td>
+                        <td><input id="filter-local-command" type="text" style="width: 100%"></td>
+                    </tr>
+                </table>
+
+                <!-- Search Button -->
+                <button id="search-btn">ИСКАТЬ</button>
+
             </div>
-            <label>
-                <input id="power-search" type="text">
-            </label>
+
+            <!-- RESULTS -->
+            <div id="results">
+
+                <table
+                        width="100%"
+                        border="1"
+                        cellpadding="0"
+                        cellspacing="0"
+                        align="left"
+                >
+
+                    <tr>
+                        <th scope="col" width="50px">Военкомат</th>
+                        <th scope="col">ФИО</th>
+                        <th scope="col">г.р.</th>
+                        <th scope="col">Личный номер</th>
+                        <th scope="col">Команда</th>
+                        <th scope="col">Примечание</th>
+                    </tr>
+                    <tr>
+                        <td>Октябрьский и Железнодорожный</td>
+                        <td>Иванов Иван Иванович</td>
+                        <td>1998</td>
+                        <td>УК-0000000</td>
+                        <td>58</td>
+                        <td>Здесь какие-то заметки</td>
+                    </tr>
+                    <tr>
+                        <td>Октябрьский и Железнодорожный</td>
+                        <td>Иванов Иван Иванович</td>
+                        <td>1998</td>
+                        <td>УК-0000000</td>
+                        <td>58</td>
+                        <td>Здесь какие-то заметки</td>
+                    </tr>
+                </table>
+
+            </div>
+
         </div>
-
-        <div id="results">
-
-            <!-- PERSON'S RESULT TEMPLATE -->
-            <div class="block block-regular">
-                <h3>Иванов Иван Иванович, 1998</h3>
-                <span class="text-hint">УК-0000000</span>
-                <div class="text-hint">ВК Октябрьского и Железнодорожного районов города Пенза Пензенской области, г. Пенза</div>
-                <div class="text-hint">{{Команда}}</div>
-                <div class="text-hint">{{Примечание}}</div>
-            </div>
-
-            <div class="block block-hint">
-                Начните ввод ФИО, года рождения, личного номера, призывного пункта или внутренней команды
-            </div>
-        </div>
-
-    </div>
+    </center>
 </div>
 
 <!-- VENDOR -->
@@ -43,13 +103,17 @@
 <script src="client/vendor/jquery/scripts/jquery-1.12.4.min.js"></script>
 <!--[if IE]>
 <script src="client/vendor/css3pie/scripts/PIE.js"></script>
+<script src="client/vendor/json3/scripts/json3.min.js"></script>
 <![endif]-->
 
 <!-- APP STYLES -->
-<link href="client/styles/positioning.css" rel="stylesheet" type="text/css">
 <link href="client/styles/main.css" rel="stylesheet" type="text/css">
 <!-- APP SCRIPTS -->
-<script src="client/scripts/helpers.js"></script>
+<script src="client/scripts/helpers/cookie.js"></script>
+<script src="client/scripts/helpers/css3polyfill.js"></script>
+<script src="client/scripts/helpers/queryhash.js"></script>
+<script src="client/scripts/api.js"></script>
+<script src="client/scripts/app.js"></script>
 <script src="client/scripts/main.js"></script>
 
 </body>

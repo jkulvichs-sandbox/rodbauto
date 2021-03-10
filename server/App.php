@@ -9,6 +9,7 @@ namespace Main {
 
     use Action\ActionError;
     use Action\ActionPersonsSearch;
+    use Action\ActionRecruitOfficesList;
     use Actions\Context;
     use AppConfig;
     use ErrorException;
@@ -84,6 +85,9 @@ namespace Main {
                 switch ($action) {
                     case ACTION_PERSONS_SEARCH:
                         (new ActionPersonsSearch())->Execute($ctx);
+                        break;
+                    case ACTION_RECRUIT_OFFICES_LIST:
+                        (new ActionRecruitOfficesList())->Execute($ctx);
                         break;
                     default:
                         (new ActionError())->ExecuteError(
