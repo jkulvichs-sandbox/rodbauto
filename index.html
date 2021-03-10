@@ -51,22 +51,22 @@
                 </table>
 
                 <!-- Search Button -->
-                <button id="search-btn">ИСКАТЬ</button>
+                <button id="search-btn">ПОИСК</button>
 
             </div>
 
             <!-- RESULTS -->
-            <div id="results">
+            <div>
 
                 <table
                         width="100%"
-                        border="1"
+                        border="0"
                         cellpadding="0"
                         cellspacing="0"
                         align="left"
                 >
-
-                    <tr>
+                    <thead>
+                    <tr style="padding: 0 0 5px 0">
                         <th scope="col" width="50px">Военкомат</th>
                         <th scope="col">ФИО</th>
                         <th scope="col">г.р.</th>
@@ -74,22 +74,10 @@
                         <th scope="col">Команда</th>
                         <th scope="col">Примечание</th>
                     </tr>
-                    <tr>
-                        <td>Октябрьский и Железнодорожный</td>
-                        <td>Иванов Иван Иванович</td>
-                        <td>1998</td>
-                        <td>УК-0000000</td>
-                        <td>58</td>
-                        <td>Здесь какие-то заметки</td>
-                    </tr>
-                    <tr>
-                        <td>Октябрьский и Железнодорожный</td>
-                        <td>Иванов Иван Иванович</td>
-                        <td>1998</td>
-                        <td>УК-0000000</td>
-                        <td>58</td>
-                        <td>Здесь какие-то заметки</td>
-                    </tr>
+                    </thead>
+                    <tbody class="results">
+                    <!-- RESULTING ROWS HERE -->
+                    </tbody>
                 </table>
 
             </div>

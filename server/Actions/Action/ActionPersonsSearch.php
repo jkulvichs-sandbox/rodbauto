@@ -41,103 +41,107 @@ namespace Action {
          */
         private function ExecuteGET($ctx)
         {
-            // power search query
-            $query = $ctx->args["query"];
+            // Filters
+            $filterName = empty($ctx->args["name"]) ? "" : $ctx->pg->escape($ctx->args["name"]);
+            $filterBirthYear = empty($ctx->args["birthYear"]) ? "" : $ctx->pg->escape($ctx->args["birthYear"]);
+            $filterRecruitOffice = empty($ctx->args["recruitOffice"]) ? "" : $ctx->pg->escape($ctx->args["recruitOffice"]);
+            $filterPersonalID = empty($ctx->args["personalID"]) ? "" : $ctx->pg->escape($ctx->args["personalID"]);
+            $filterLocalCommand = empty($ctx->args["localCommand"]) ? "" : $ctx->pg->escape($ctx->args["localCommand"]);
+
             // results limit per each results type
-            $limit = $ctx->args["limit"];
+            $limit = empty($ctx->args["limit"]) ? 10000 : $ctx->pg->escape($ctx->args["limit"]);
 
-            // exit if empty query
-            if (empty($query)) {
-                (new Response())
-                    ->AddError(400, "empty_query", "add query param to initiate search")
-                    ->AddContext($ctx)
-                    ->Reply();
-                return;
-            }
+            // Generating query for recruit office
+            $sqlRecruitOffice = "AND rec_office_id ILIKE '$filterRecruitOffice'";
+            if (empty($filterRecruitOffice)) $sqlRecruitOffice = "";
 
-            // limit of PG responses models of each type
-            $pgLimit = empty($limit) ? 5 : min($limit, 10);
+            // Generating query for local command
+            $sqlLocalCommandQuery = "AND extra ILIKE '%\"localCommand\":\"%$filterLocalCommand%\"%'";
+            if (empty($filterLocalCommand)) $sqlLocalCommandQuery = "";
 
-            // searching for full name
-            $personsByFullName = (new PersonPriz01($ctx->pg))->findAllByFullName($query, "", $pgLimit);
-            $replyByFullNames = [];
-            for ($i = 0; $i < count($personsByFullName); $i++) {
-                $card = new PersonCardReply();
-                $card->person = $personsByFullName[$i];
-                // searching for related models
-                $card->initReg = (new PersonInitRegPriz10($ctx->pg))->get($card->person->id);
-                $card->recruitOffice = (new RecruitOfficeR8012($ctx->pg))->get(substr($card->person->num, 0, 8));
-                $replyByFullNames[] = $card;
-            }
+            // SQL query template
+            $sql = "
+                SELECT *
+                FROM (
+                         SELECT person.p001::text                                       AS id,
+                                person.p005 || ' ' || person.p006 || ' ' || person.p007 AS person_name,
+                                person.k101::text                                       AS person_birth_year,
+                                recruiter.nom_li                                        AS personal_id,
+                                rec_office.p01                                          AS rec_office_name,
+                                rec_office.p00                                          AS rec_office_id,
+                                init_reg.p100::text                                     AS extra
+                         FROM priz01 as person
+                                  JOIN priz10 as init_reg
+                                       ON person.p001 = init_reg.p001
+                                  JOIN r8012 as rec_office
+                                       ON substr(person.pnom, 0, 9) = rec_office.p00
+                                  JOIN gsp01_ur as recruiter
+                                       ON person.pnom = recruiter.pnom
+                     ) AS card
+                WHERE 
+                      person_name ILIKE '%$filterName%'
+                      AND person_birth_year ILIKE '%$filterBirthYear%'
+                      $sqlRecruitOffice                
+                      AND personal_id ILIKE '%$filterPersonalID%'
+                      $sqlLocalCommandQuery
+                ORDER BY person_name
+                LIMIT $limit;
+            ";
 
-            // searching for birth year
-            $personsByBirthYear = (new PersonPriz01($ctx->pg))->findAllByBirthYear($query, "", $pgLimit);
-            $replyByBirthYear = [];
-            for ($i = 0; $i < count($personsByBirthYear); $i++) {
-                $card = new PersonCardReply();
-                $card->person = $personsByBirthYear[$i];
-                // searching for related models
-                $card->initReg = (new PersonInitRegPriz10($ctx->pg))->get($card->person->id);
-                $card->recruitOffice = (new RecruitOfficeR8012($ctx->pg))->get(substr($card->person->num, 0, 8));
-                $replyByBirthYear[] = $card;
-            }
+            // SQL query
+            $cards = $ctx->pg->query($sql);
 
-            // searching for personal ID
-            $personsByPersonalID = (new PersonPriz01($ctx->pg))->findAllByPersonalID($query, "", $pgLimit);
-            $replyByPersonalID = [];
-            for ($i = 0; $i < count($personsByPersonalID); $i++) {
-                $card = new PersonCardReply();
-                $card->person = $personsByPersonalID[$i];
-                // searching for related models
-                $card->initReg = (new PersonInitRegPriz10($ctx->pg))->get($card->person->id);
-                $card->recruitOffice = (new RecruitOfficeR8012($ctx->pg))->get(substr($card->person->num, 0, 8));
-                $replyByPersonalID[] = $card;
-            }
-
-            // searching for local command
-            $initRegsByLocalCommand = (new PersonInitRegPriz10($ctx->pg))->findAllByLocalCommand($query, "", $pgLimit);
-            $replyByLocalCommand = [];
-            for ($i = 0; $i < count($initRegsByLocalCommand); $i++) {
-                $card = new PersonCardReply();
-                $card->initReg = $initRegsByLocalCommand[$i];
-                // searching for related models
-                $card->person = (new PersonPriz01($ctx->pg))->get($card->initReg->id);
-                $card->recruitOffice = (new RecruitOfficeR8012($ctx->pg))->get(substr($card->person->num, 0, 8));
-                $replyByLocalCommand[] = $card;
-            }
-
-            // searching for recruiting office name
-            $recOfficesByName = (new RecruitOfficeR8012($ctx->pg))->findAllByName($query, "", $pgLimit);
-            $replyByRecOfficesName = [];
-            foreach ($recOfficesByName as $recOffice) {
-                $replyByRecOfficesName[$recOffice->name] = [];
-                //TODO: Здесь ограничить фильтрами
-                $persons = (new PersonPriz01($ctx->pg))->findAllByRecruitOfficeID($recOffice->id, "");
-                for ($i = 0; $i < count($persons); $i++) {
-                    $card = new PersonCardReply();
-                    $card->person = $persons[$i];
-                    $card->recruitOffice = $recOffice;
-                    // searching for related models
-                    try {
-                        $card->initReg = (new PersonInitRegPriz10($ctx->pg))->get($card->person->id);
-                    } catch (Exception $e) {
-                        $card->initReg = null;
-                    }
-                    $replyByRecOfficesName[$recOffice->name][] = $card;
+            // Aliases for more short names
+            function getRecruitOfficeAlias($id)
+            {
+                $aliases = [
+                    ["id" => "08489495", "name" => "Октябрьский и Железнодорожный"],
+                    ["id" => "08489526", "name" => "Первомайский и Ленинский"],
+                    ["id" => "08489992", "name" => "г.Кузнецк, Кузнецкий и Сосновоборский"],
+                    ["id" => "08489561", "name" => "Башмаковский и Пачелмский"],
+                    ["id" => "08489696", "name" => "Белинский и Тамалинский"],
+                    ["id" => "08489650", "name" => "Бессоновский и Мокшанский"],
+                    ["id" => "08489733", "name" => "Городищенский и Никольский"],
+                    ["id" => "08489673", "name" => "г. Заречный"],
+                    ["id" => "08489785", "name" => "Земетчинский и Вадинский"],
+                    ["id" => "08489851", "name" => "Каменский"],
+                    ["id" => "08489940", "name" => "Колышлейский и М.Сердобинский"],
+                    ["id" => "08490015", "name" => "Лунинский и Иссинский"],
+                    ["id" => "08490050", "name" => "Неверкинский и Камешкирский"],
+                    ["id" => "08490133", "name" => "Н.Ломовский и Наровчатский Спасский"],
+                    ["id" => "08490328", "name" => "Пензенский"],
+                    ["id" => "08490334", "name" => "Сердобский и Бековский"],
+                    ["id" => "08490392", "name" => "Шемышейский и Лопатинский"],
+                ];
+                for ($i = 0; $i < count($aliases); $i++) {
+                    if ($aliases[$i]["id"] == $id) return $aliases[$i]["name"];
                 }
+                return "";
             }
 
-            // make response model
-            $resp = [
-                "query" => $query,
-                "fullName" => $replyByFullNames,
-                "birthYear" => $replyByBirthYear,
-                "personalID" => $replyByPersonalID,
-                "localCommand" => $replyByLocalCommand,
-                "recruitOffices" => $replyByRecOfficesName,
-            ];
+            // Responses repack
+            $result = [];
+            foreach ($cards as $card) {
+                $extra = json_decode($card["extra"], true);
+                // If extra is NULL create new with empty fields
+                if ($extra === null) $extra = ["comment" => $card["extra"]];
+                // If some fields doesn't exists - create them
+                if (empty($extra["localCommand"])) $extra["localCommand"] = "";
+                if (empty($extra["comment"])) $extra["comment"] = "";
 
-            (new Response($resp))->Reply();
+                $newCard = [
+                    "id" => $card["id"],
+                    "name" => $card["person_name"],
+                    "birthYear" => $card["person_birth_year"],
+                    "personalID" => $card["personal_id"],
+                    "recruitOfficeName" => getRecruitOfficeAlias($card["rec_office_id"]),
+                    "recruitOfficeID" => $card["rec_office_id"],
+                    "extra" => $extra,
+                ];
+                $result[] = $newCard;
+            }
+
+            (new Response($result))->Reply();
         }
     }
 

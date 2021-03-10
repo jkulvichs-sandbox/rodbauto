@@ -27,6 +27,9 @@ window.onload = function () {
             // Make search
             search(api, app);
         });
+
+        // Auto save when card's data have been changed
+        // $("#filter-name").change(function() { console.log("ok"); });
     });
 }
 
@@ -36,14 +39,21 @@ window.onload = function () {
 function installResources(api, app, next) {
     // Get list of recruit offices from server and set modified list into select
     api.getRecruitOffices(function (resp) {
-        var list = $.merge(resp, [
+        var list = $.merge([
             {id: "", name: ""}
-        ]);
+        ], resp);
         app.filters.recruitOffice.setList(list);
         next();
     });
 }
 
+/**
+ * Search request and data rendering
+ */
 function search(api, app, next) {
-    next();
+    api.search(app.filters.getAll(), function (resp) {
+        app.table.clear();
+        app.table.appendAll(resp);
+        if (next) next();
+    });
 }

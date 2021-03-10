@@ -34,7 +34,7 @@ App.prototype.filters = {
         setList: function (list) {
             $("#filter-recruit-office option").remove();
 
-            for (var i = list.length - 1; i >= 0; i--) {
+            for (var i = 0; i < list.length; i++) {
                 var option = document.createElement("option");
                 option.setAttribute("value", list[i].id);
                 option.innerText = list[i].name;
@@ -84,3 +84,43 @@ App.prototype.filters = {
     }
 }
 
+// Resulting table control
+App.prototype.table = {
+    clear: function () {
+        $(".results tr").remove();
+    },
+    append: function (card) {
+        var domCard = document.createElement("tr");
+
+        var domCardRecruitOffice = document.createElement("td");
+        domCardRecruitOffice.innerText = card.recruitOfficeName || " ";
+        domCard.appendChild(domCardRecruitOffice);
+
+        var domName = document.createElement("td");
+        domName.innerText = card.name || " ";
+        domCard.appendChild(domName);
+
+        var domBirthYear = document.createElement("td");
+        domBirthYear.innerText = card.birthYear || " ";
+        domCard.appendChild(domBirthYear);
+
+        var domPersonalID = document.createElement("td");
+        domPersonalID.innerText = card.personalID || " ";
+        domCard.appendChild(domPersonalID);
+
+        var domLocalCommand = document.createElement("td");
+        domLocalCommand.innerText = card.extra.localCommand || " ";
+        domCard.appendChild(domLocalCommand);
+
+        var domComment = document.createElement("td");
+        domComment.innerText = card.extra.comment || " ";
+        domCard.appendChild(domComment);
+
+        $(".results").append(domCard);
+    },
+    appendAll: function (cards) {
+        for (var i = 0; i < cards.length; i++) {
+            this.append(cards[i]);
+        }
+    }
+}

@@ -19,3 +19,21 @@ API.prototype.getRecruitOffices = function (result) {
         result(resp.data);
     });
 }
+
+/**
+ * Get list of recruit offices with {"office_ID": "office name"} association
+ * @param result
+ */
+API.prototype.search = function (filters, result) {
+    var paramsPairs = ["rand=" + Math.random()];
+    for (var filter in filters) {
+        if (filters[filter]) {
+            paramsPairs[paramsPairs.length] = filter + "=" + encodeURI(filters[filter]);
+        }
+    }
+    var params = paramsPairs.join("&");
+
+    $.get(this.baseURL + "/persons/search.php?" + params, function (resp) {
+        result(resp.data);
+    });
+}
