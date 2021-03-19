@@ -10,6 +10,7 @@ namespace Main {
     use Action\ActionError;
     use Action\ActionPersonsSearch;
     use Action\ActionRecruitOfficesList;
+    use Action\ActionUpdateExtra;
     use Actions\Context;
     use AppConfig;
     use ErrorException;
@@ -88,6 +89,9 @@ namespace Main {
                         break;
                     case ACTION_RECRUIT_OFFICES_LIST:
                         (new ActionRecruitOfficesList())->Execute($ctx);
+                        break;
+                    case ACTION_UPDATE_EXTRA:
+                        (new ActionUpdateExtra())->Execute($ctx);
                         break;
                     default:
                         (new ActionError())->ExecuteError(

@@ -84,43 +84,190 @@ App.prototype.filters = {
     }
 }
 
+App.prototype.action = {
+    show: function (text, action, callback) {
+        $("#action-text").text(text);
+        $("#action-btn").text(action);
+        $("#action-btn").off("click");
+        $("#action-btn").click(callback);
+        $("#action").fadeIn(0);
+    },
+    hide: function () {
+        $("#action").hide();
+    }
+}
+
 // Resulting table control
 App.prototype.table = {
-    clear: function () {
-        $(".results tr").remove();
+    hide: function () {
+        $("#results").hide();
     },
-    append: function (card) {
-        var domCard = document.createElement("tr");
+    show: function () {
+        $("#results").fadeIn(0);
+    },
+    clear: function () {
+        $("#results div").remove();
+    },
+    append: function (domContainer, card, onExtraChanged) {
+        // <div class="table-row">
+        //     <div class="row-index">№</div>
+        //     <div class="row-recruit-office">Военкомат</div>
+        //     <div class="row-name">ФИО</div>
+        //     <div class="row-birth">г.р.</div>
+        //     <div class="row-personal-id">Жетон</div>
+        //     <div class="row-local-command">Команда</div>
+        //     <div class="row-comment">Примечание</div>
+        // </div>
 
-        var domCardRecruitOffice = document.createElement("td");
-        domCardRecruitOffice.innerText = card.recruitOfficeName || " ";
-        domCard.appendChild(domCardRecruitOffice);
+        // Main Person's Card
+        var domCard = document.createElement("div");
+        domCard.className = "table-row";
 
-        var domName = document.createElement("td");
+        // Index Column
+        var domIndex = document.createElement("div");
+        domIndex.className = "row-index";
+        domIndex.innerText = card.index || " ";
+        domCard.appendChild(domIndex);
+
+        // Recruit Office Column
+        var domRecruitOffice = document.createElement("div");
+        domRecruitOffice.className = "row-recruit-office";
+        domRecruitOffice.innerText = card.recruitOfficeName || " ";
+        domCard.appendChild(domRecruitOffice);
+
+        // Name Column
+        var domName = document.createElement("div");
+        domName.className = "row-name";
         domName.innerText = card.name || " ";
         domCard.appendChild(domName);
 
-        var domBirthYear = document.createElement("td");
-        domBirthYear.innerText = card.birthYear || " ";
-        domCard.appendChild(domBirthYear);
+        // Birth Date Column
+        var domBirth = document.createElement("div");
+        domBirth.className = "row-birth";
+        domBirth.innerText = card.birth || " ";
+        domCard.appendChild(domBirth);
 
-        var domPersonalID = document.createElement("td");
+        // Personal ID Column
+        var domPersonalID = document.createElement("div");
+        domPersonalID.className = "row-personal-id";
         domPersonalID.innerText = card.personalID || " ";
         domCard.appendChild(domPersonalID);
 
-        var domLocalCommand = document.createElement("td");
-        domLocalCommand.innerText = card.extra.localCommand || " ";
+        // Local Comment Field
+        var domLocalCommandField = document.createElement("input");
+        domLocalCommandField.className = "row-local-command-field";
+        domLocalCommandField.value = card.extra.localCommand || "";
+        // Local Command Column
+        var domLocalCommand = document.createElement("div");
+        domLocalCommand.className = "row-local-command";
+        domLocalCommand.appendChild(domLocalCommandField);
         domCard.appendChild(domLocalCommand);
 
-        var domComment = document.createElement("td");
-        domComment.innerText = card.extra.comment || " ";
+        // Comment Field
+        var domCommentField = document.createElement("input");
+        domCommentField.className = "row-comment-field";
+        domCommentField.value = card.extra.comment || "";
+        // Comment Column
+        var domComment = document.createElement("div");
+        domComment.className = "row-comment";
+        domComment.appendChild(domCommentField);
         domCard.appendChild(domComment);
 
-        $(".results").append(domCard);
-    },
-    appendAll: function (cards) {
-        for (var i = 0; i < cards.length; i++) {
-            this.append(cards[i]);
+        // Handlers
+        var updateExtra = function () {
+            onExtraChanged(card.id, {
+                comment: domCommentField.value,
+                localCommand: domLocalCommandField.value
+            })
         }
+        $(domCommentField).on("change", updateExtra);
+        $(domCommentField).on("keyup", function() {
+            // Limit for input length
+            domCommentField.value = domCommentField.value.substr(0, 43);
+            updateExtra();
+        });
+        $(domLocalCommandField).on("change", updateExtra);
+        $(domLocalCommandField).on("keyup", function () {
+            // Limit for input length
+            domLocalCommandField.value = domLocalCommandField.value.substr(0, 6);
+            updateExtra();
+        });
+
+        domContainer.appendChild(domCard);
+    },
+    // stepCallback - callback with added - count of rendered cards now and total - total count of cards
+    appendAll: function (cards, stepCallback, finishCallback, onExtraChanged) {
+        var step = stepCallback || function (prc) {
+        };
+        var that = this;
+        var finish = finishCallback || function () {
+        };
+
+        // appends several cards from array
+        var appendSeveral = function (domContainer, cards, start, end, callback) {
+            var to = end;
+            if (to > cards.length) to = cards.length;
+            for (var i = start; i < to; i++) {
+                cards[i].index = i + 1;
+                that.append(domContainer, cards[i], onExtraChanged);
+            }
+
+            var prc = end / cards.length;
+            if (prc > 1) prc = 1;
+            step(prc);
+
+            if (end < cards.length) {
+                setTimeout(function () {
+                    appendSeveral(domContainer, cards, start + 500, end + 500, callback);
+                }, 100);
+            } else {
+                callback();
+            }
+        }
+
+        // appends several cards and call callback
+        // var appendCount = 100;
+        // for (var i = 0; i < cards.length / appendCount; i++) {
+        //     // (function (i) {
+        //     //     setTimeout(function () {
+        //     //         appendSeveral(cards, i * appendCount, i * appendCount + appendCount);
+        //     //         step(i * appendCount, cards.length);
+        //     //     }, i * 200);
+        //     // })(i);
+        //     // appendSeveral(cards, i * appendCount, i * appendCount + appendCount);
+        //     // step(i * appendCount, cards.length);
+        // }
+
+        var domContainer = document.createElement("div");
+
+        appendSeveral(domContainer, cards, 0, 500, function () {
+            that.clear();
+            $("#results").append(domContainer);
+            finish();
+        });
+    }
+}
+
+/**
+ * Hint Line
+ */
+App.prototype.hintLine = {
+    set: function (text) {
+        $("#hint-line-text").text(text);
+    },
+    get: function () {
+        return $("#hint-line-text").text();
+    }
+}
+
+/**
+ * Load Spinner
+ */
+App.prototype.spinner = {
+    hide: function () {
+        $("#spinner").hide();
+    },
+    show: function () {
+        $("#spinner").fadeIn(0);
     }
 }

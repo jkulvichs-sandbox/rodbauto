@@ -3,7 +3,7 @@
 ![Designed For InternetExplorer 6](https://img.shields.io/badge/BROWSER-IE6-%230076D6?style=flat-square&logo=Internet-Explorer)
 ![GitHub last commit](https://img.shields.io/github/last-commit/jkulvichs-sandbox/rodbauto?style=flat-square)
 
-# 🏢 RODBAuto
+# 🏢 RODBAuto || СПБД
 
 > Recruiting Office DataBase Automation Tools  
 > Инструменты автоматизации БД Сборного Пункта

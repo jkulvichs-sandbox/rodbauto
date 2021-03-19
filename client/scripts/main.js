@@ -2,6 +2,9 @@
  * Main App logic
  */
 window.onload = function () {
+    // Welcome notification
+    log.success("RODBAuto :: The Recruit Offices Automation", "Пенза, локальная БД");
+
     // PIE3 CSS3 polyfill for IE
     // Needs to be updated every time when CSS changes
     initCSS3Polyfill();
@@ -25,7 +28,11 @@ window.onload = function () {
             // Save search params into location hash
             queryhash.set(app.filters.getAll());
             // Make search
-            search(api, app);
+
+            // Update all page instead of concrete components
+            // It's more easy for IE6
+            // search(api, app);
+            location.reload();
         });
 
         // Auto save when card's data have been changed
@@ -51,9 +58,64 @@ function installResources(api, app, next) {
  * Search request and data rendering
  */
 function search(api, app, next) {
-    api.search(app.filters.getAll(), function (resp) {
-        app.table.clear();
-        app.table.appendAll(resp);
-        if (next) next();
-    });
+    app.action.hide();
+    app.spinner.show();
+    app.hintLine.set("Поиск и фильтрация. Это может занять продолжительное время ...");
+
+    setTimeout(function () {
+        api.search(app.filters.getAll(), function (cards) {
+            var ETA = (cards.length * 0.00312) | 0;
+
+            var showCards = function () {
+                app.spinner.show();
+                var startTime = +(new Date());
+                app.hintLine.set("Отображение результатов ... (Это может занять примерно " + ETA + " сек)");
+                setTimeout(function () {
+
+                    var hintMainText = "";
+                    var timeoutHintMain = null;
+
+                    app.table.appendAll(cards, function (prc) {
+                        var TimeLeft = ETA - (ETA * prc) | 0;
+                        if (prc < 0.9) {
+                            app.hintLine.set("Отображение результатов, до завершения осталось примерно " + TimeLeft + " сек");
+                        } else {
+                            app.hintLine.set("Отображение результатов, до завершения осталось несколько секунд");
+                        }
+                    }, function () {
+                        var endTime = +(new Date());
+                        var FTA = ((endTime - startTime) / 1000) | 0;
+                        hintMainText = "Всего результатов: " + cards.length + ", выполнено за " + (FTA + 1) + " сек";
+                        app.hintLine.set(hintMainText);
+                        app.spinner.hide();
+                        if (next) next();
+                    }, function (id, extra) {
+                        app.hintLine.set("Сохранение изменений ...");
+                        api.updateExtra(id, extra, function () {
+                            app.hintLine.set("Изменения сохранены!");
+                            clearTimeout(timeoutHintMain);
+                            timeoutHintMain = setTimeout(function () {
+                                app.hintLine.set(hintMainText);
+                            }, 1000);
+                        });
+                    });
+                }, 100);
+            }
+
+            if (cards.length > 1000) {
+                app.spinner.hide();
+                app.hintLine.set("Согласитесь с предложенным действием или начните новый поиск");
+                app.action.show(
+                    "Найдено " + cards.length + " записей, это может занять примерно " + ETA + " сек",
+                    "ПРОДОЛЖИТЬ",
+                    function () {
+                        app.action.hide();
+                        showCards();
+                    });
+            } else {
+                showCards();
+            }
+
+        });
+    }, 200)
 }

@@ -49,11 +49,15 @@ namespace Action {
             $filterLocalCommand = empty($ctx->args["localCommand"]) ? "" : $ctx->pg->escape($ctx->args["localCommand"]);
 
             // results limit per each results type
-            $limit = empty($ctx->args["limit"]) ? 10000 : $ctx->pg->escape($ctx->args["limit"]);
+            $limit = empty($ctx->args["limit"]) ? 30000 : $ctx->pg->escape($ctx->args["limit"]);
 
             // Generating query for recruit office
             $sqlRecruitOffice = "AND rec_office_id ILIKE '$filterRecruitOffice'";
             if (empty($filterRecruitOffice)) $sqlRecruitOffice = "";
+
+            // Generating personal id statement
+            $sqlPersonalID = "AND personal_id ILIKE '%$filterPersonalID%'";
+            if (empty($filterPersonalID)) $sqlPersonalID = "";
 
             // Generating query for local command
             $sqlLocalCommandQuery = "AND extra ILIKE '%\"localCommand\":\"%$filterLocalCommand%\"%'";
@@ -66,7 +70,8 @@ namespace Action {
                          SELECT person.p001::text                                       AS id,
                                 person.p005 || ' ' || person.p006 || ' ' || person.p007 AS person_name,
                                 person.k101::text                                       AS person_birth_year,
-                                recruiter.nom_li                                        AS personal_id,
+                                person.k001::text                                       AS person_birth,
+                                (SELECT nom_li FROM gsp01_ur WHERE person.pnom = pnom)  AS personal_id,
                                 rec_office.p01                                          AS rec_office_name,
                                 rec_office.p00                                          AS rec_office_id,
                                 init_reg.p100::text                                     AS extra
@@ -74,15 +79,13 @@ namespace Action {
                                   JOIN priz10 as init_reg
                                        ON person.p001 = init_reg.p001
                                   JOIN r8012 as rec_office
-                                       ON substr(person.pnom, 0, 9) = rec_office.p00
-                                  JOIN gsp01_ur as recruiter
-                                       ON person.pnom = recruiter.pnom
+                                       ON substr(person.pnom, 0, 9) = rec_office.p00                                  
                      ) AS card
                 WHERE 
                       person_name ILIKE '%$filterName%'
                       AND person_birth_year ILIKE '%$filterBirthYear%'
                       $sqlRecruitOffice                
-                      AND personal_id ILIKE '%$filterPersonalID%'
+                      $sqlPersonalID
                       $sqlLocalCommandQuery
                 ORDER BY person_name
                 LIMIT $limit;
@@ -122,21 +125,20 @@ namespace Action {
             // Responses repack
             $result = [];
             foreach ($cards as $card) {
-                $extra = json_decode($card["extra"], true);
+                $extra = explode("|", $card["extra"]);
                 // If extra is NULL create new with empty fields
-                if ($extra === null) $extra = ["comment" => $card["extra"]];
-                // If some fields doesn't exists - create them
-                if (empty($extra["localCommand"])) $extra["localCommand"] = "";
-                if (empty($extra["comment"])) $extra["comment"] = "";
+                if (empty($extra)) $extra = ["", ""];
+                if (empty($extra[1])) $extra[1] = "";
 
                 $newCard = [
                     "id" => $card["id"],
                     "name" => $card["person_name"],
                     "birthYear" => $card["person_birth_year"],
+                    "birth" => date("d.m.Y", strtotime($card["person_birth"])),
                     "personalID" => $card["personal_id"],
                     "recruitOfficeName" => getRecruitOfficeAlias($card["rec_office_id"]),
                     "recruitOfficeID" => $card["rec_office_id"],
-                    "extra" => $extra,
+                    "extra" => ["localCommand" => $extra[0], "comment" => $extra[1]],
                 ];
                 $result[] = $newCard;
             }

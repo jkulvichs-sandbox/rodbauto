@@ -13,4 +13,7 @@ namespace Action {
     require_once "ActionRecruitOfficesList.php";
     define("ACTION_RECRUIT_OFFICES_LIST", "recruit_offices_list");
 
+    require_once "ActionUpdateExtra.php";
+    define("ACTION_UPDATE_EXTRA", "update_extra");
+
 }
