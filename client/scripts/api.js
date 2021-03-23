@@ -4,7 +4,7 @@
  */
 function API(errCallback, baseURL) {
     $(document).ajaxError(errCallback || function (event, jqxhr, settings, thrownError) {
-        log.error("AJAX Unhandled Error", thrownError, event);
+        log.error("AJAX Unhandled Error", thrownError, JSON.stringify(event));
         alert("Ошибка подключения. Проверьте своё интернет-соединение и обновите страницу");
     });
 

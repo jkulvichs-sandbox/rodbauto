@@ -57,12 +57,13 @@
 
             <!-- HINT LINE -->
             <div id="hint-line" class="block block-secondary">
-                <img id="spinner" hidden="" src="./client/assets/images/spinner.gif" width="13px" alt="spinner">
+                <img id="spinner" src="./client/assets/images/spinner.gif" width="13px" alt="spinner"
+                     style="display: none">
                 <span id="hint-line-text">Укажите фильтры и начните поиск</span>
             </div>
 
             <!-- SUGGESTED ACTION -->
-            <div id="action" hidden="" class="block block-secondary">
+            <div id="action" class="block block-secondary" style="display: none">
                 <span id="action-text"></span>
                 <button id="action-btn"></button>
             </div>
@@ -79,6 +80,23 @@
             </div>
             <div id="results" style="overflow-y: scroll; overflow-x: hidden; height: 500px">
                 <!-- RESULTING ROWS HERE -->
+            </div>
+
+            <!-- APP TITLE -->
+            <div class="block block-primary" style="cursor: pointer" onclick="
+            alert('СПБД :: Сборный Пункт База Данных :: Версия 1.0.0\n' +
+             'Система автоматизации базы данных сборного пункта\n\n' +
+             'Разработка: Кулагин Юрий\n' +
+             'Почта: jkulvichi@gmail.com\n' +
+             'Телефон: +7 (916) 500-82-81\n\n' +
+             'Разработано для PHP 5.6 и InternetExplorer 6'
+              )
+            ">
+                <img style="float: left; margin: 0 10px 0 0" src="./client/assets/images/rodb-logo.jpg" width="30px"
+                     alt="spinner">
+                <div style="width: 500px; line-height: 30px; font-size: 10pt">
+                    СПБД v1.0.0 :: Пенза | О программе | Сообщить об ошибке
+                </div>
             </div>
 
         </div>

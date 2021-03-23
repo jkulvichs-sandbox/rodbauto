@@ -181,15 +181,19 @@ App.prototype.table = {
             })
         }
         $(domCommentField).on("change", updateExtra);
-        $(domCommentField).on("keyup", function() {
+        $(domCommentField).on("keyup", function () {
             // Limit for input length
-            domCommentField.value = domCommentField.value.substr(0, 43);
+            if (domCommentField.value.length > 46) {
+                domCommentField.value = domCommentField.value.substr(0, 46);
+            }
             updateExtra();
         });
         $(domLocalCommandField).on("change", updateExtra);
         $(domLocalCommandField).on("keyup", function () {
             // Limit for input length
-            domLocalCommandField.value = domLocalCommandField.value.substr(0, 6);
+            if (domLocalCommandField.value.length > 3) {
+                domLocalCommandField.value = domLocalCommandField.value.substr(0, 3);
+            }
             updateExtra();
         });
 
@@ -254,9 +258,16 @@ App.prototype.table = {
 App.prototype.hintLine = {
     set: function (text) {
         $("#hint-line-text").text(text);
+        this.show();
     },
     get: function () {
         return $("#hint-line-text").text();
+    },
+    show: function () {
+        $("#hint-line").fadeIn(0);
+    },
+    hide: function () {
+        $("#hint-line").hide();
     }
 }
 

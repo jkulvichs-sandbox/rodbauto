@@ -59,63 +59,89 @@ function installResources(api, app, next) {
  */
 function search(api, app, next) {
     app.action.hide();
-    app.spinner.show();
-    app.hintLine.set("Поиск и фильтрация. Это может занять продолжительное время ...");
+    var filters = app.filters.getAll()
 
-    setTimeout(function () {
-        api.search(app.filters.getAll(), function (cards) {
-            var ETA = (cards.length * 0.00312) | 0;
+    var startSearch = function () {
+        app.hintLine.set("Поиск и фильтрация. Это может занять продолжительное время ...");
+        app.spinner.show();
+        setTimeout(function () {
+            api.search(filters, function (cards) {
+                var ETA = (cards.length * 0.005) | 0;
 
-            var showCards = function () {
-                app.spinner.show();
-                var startTime = +(new Date());
-                app.hintLine.set("Отображение результатов ... (Это может занять примерно " + ETA + " сек)");
-                setTimeout(function () {
+                var showCards = function () {
+                    app.spinner.show();
+                    var startTime = +(new Date());
+                    app.hintLine.set("Отображение результатов, до завершения осталось примерно " + ETA + " сек");
+                    setTimeout(function () {
 
-                    var hintMainText = "";
-                    var timeoutHintMain = null;
+                        var hintMainText = "";
+                        var timeoutHintMain = null;
 
-                    app.table.appendAll(cards, function (prc) {
-                        var TimeLeft = ETA - (ETA * prc) | 0;
-                        if (prc < 0.9) {
-                            app.hintLine.set("Отображение результатов, до завершения осталось примерно " + TimeLeft + " сек");
-                        } else {
-                            app.hintLine.set("Отображение результатов, до завершения осталось несколько секунд");
-                        }
-                    }, function () {
-                        var endTime = +(new Date());
-                        var FTA = ((endTime - startTime) / 1000) | 0;
-                        hintMainText = "Всего результатов: " + cards.length + ", выполнено за " + (FTA + 1) + " сек";
-                        app.hintLine.set(hintMainText);
-                        app.spinner.hide();
-                        if (next) next();
-                    }, function (id, extra) {
-                        app.hintLine.set("Сохранение изменений ...");
-                        api.updateExtra(id, extra, function () {
-                            app.hintLine.set("Изменения сохранены!");
-                            clearTimeout(timeoutHintMain);
-                            timeoutHintMain = setTimeout(function () {
-                                app.hintLine.set(hintMainText);
-                            }, 1000);
+                        app.table.appendAll(cards, function (prc) {
+                            var TimeLeft = ETA - (ETA * prc) | 0;
+                            if (prc < 0.9) {
+                                app.hintLine.set("Отображение результатов, до завершения осталось примерно " + TimeLeft + " сек");
+                            } else {
+                                app.hintLine.set("Отображение результатов, до завершения осталось несколько секунд");
+                            }
+                        }, function () {
+                            var endTime = +(new Date());
+                            var FTA = ((endTime - startTime) / 1000) | 0;
+                            hintMainText = "Всего результатов: " + cards.length + ", выполнено за " + (FTA + 1) + " сек";
+                            app.hintLine.set(hintMainText);
+                            app.spinner.hide();
+                            if (next) next();
+                        }, function (id, extra) {
+                            app.hintLine.set("Сохранение изменений ...");
+                            api.updateExtra(id, extra, function () {
+                                app.hintLine.set("Изменения сохранены!");
+                                clearTimeout(timeoutHintMain);
+                                timeoutHintMain = setTimeout(function () {
+                                    app.hintLine.set(hintMainText);
+                                }, 1000);
+                            });
                         });
-                    });
-                }, 100);
-            }
+                    }, 100);
+                }
 
-            if (cards.length > 1000) {
-                app.spinner.hide();
-                app.hintLine.set("Согласитесь с предложенным действием или начните новый поиск");
-                app.action.show(
-                    "Найдено " + cards.length + " записей, это может занять примерно " + ETA + " сек",
-                    "ПРОДОЛЖИТЬ",
-                    function () {
-                        app.action.hide();
-                        showCards();
-                    });
-            } else {
-                showCards();
-            }
+                if (cards.length > 1000) {
+                    app.spinner.hide();
+                    app.hintLine.hide();
+                    app.action.show(
+                        "Найдено " + cards.length + " записей, отображение может занять примерно " + ETA + " сек",
+                        "ПРОДОЛЖИТЬ",
+                        function () {
+                            app.action.hide();
+                            showCards();
+                        });
+                } else {
+                    showCards();
+                }
 
-        });
-    }, 200)
+            });
+        }, 200)
+    }
+
+    // Check that any filter is active
+    var isEnabledFilters = false;
+    for (filterName in filters) {
+        if (filters[filterName]) {
+            isEnabledFilters = true;
+            break;
+        }
+    }
+
+    // If no one filter is enabled, then print warning
+    if (isEnabledFilters) {
+        startSearch();
+    } else {
+        app.hintLine.hide();
+        app.action.show(
+            "Загрузка без фильтров может занять продолжительное время",
+            "ПРОДОЛЖИТЬ",
+            function () {
+                app.action.hide();
+                startSearch();
+            });
+    }
 }

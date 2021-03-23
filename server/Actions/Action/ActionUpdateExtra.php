@@ -48,7 +48,7 @@ namespace Action {
             $extraComment = $ctx->pg->escape($extra["comment"]);
             $extraLocalCommand = $ctx->pg->escape($extra["localCommand"]);
 
-            $extraString = "$extraLocalCommand|$extraComment";
+            $extraString = "$extraLocalCommand*$extraComment";
 
             // SQL query template
             $sql = "

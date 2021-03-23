@@ -1,7 +1,6 @@
 .table-row {
     width: 1000px;
     height: 40px;
-    background: black;
     overflow-y: hidden;
     border-bottom: 1px solid #757575;
 }
@@ -17,7 +16,6 @@
 .row-index {
     float: left;
     display: inline;
-    background: #D7CCC8;
     width: 50px;
     height: 100%;
     text-align: center;
@@ -28,8 +26,8 @@
 .row-recruit-office {
     float: left;
     display: inline;
-    background: #F8BBD0;
-    width: 190px;
+    border-left: 1px solid #757575;
+    width: 189px;
     height: 100%;
     padding: 0 5px 0 5px;
 }
@@ -37,8 +35,8 @@
 .row-name {
     float: left;
     display: inline;
-    background: #E1BEE7;
-    width: 290px;
+    border-left: 1px solid #757575;
+    width: 289px;
     height: 100%;
     padding: 0 5px 0 5px;
 }
@@ -46,8 +44,8 @@
 .row-birth {
     float: left;
     display: inline;
-    background: #C8E6C9;
-    width: 100px;
+    border-left: 1px solid #757575;
+    width: 99px;
     height: 100%;
     line-height: 40px;
     text-align: center;
@@ -56,8 +54,8 @@
 .row-personal-id {
     float: left;
     display: inline;
-    background: #C5CAE9;
-    width: 100px;
+    border-left: 1px solid #757575;
+    width: 99px;
     height: 100%;
     line-height: 40px;
     text-align: center;
@@ -66,8 +64,8 @@
 .row-local-command {
     float: left;
     display: inline;
-    background: #FFECB3;
-    width: 80px;
+    border-left: 1px solid #757575;
+    width: 79px;
     height: 100%;
     overflow-x: hidden;
 }
@@ -82,8 +80,8 @@
 .row-comment {
     float: left;
     display: inline;
-    background: #B2DFDB;
-    width: 170px;
+    border-left: 1px solid #757575;
+    width: 169px;
     height: 100%;
     overflow-x: hidden;
 }

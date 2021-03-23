@@ -60,7 +60,7 @@ namespace Action {
             if (empty($filterPersonalID)) $sqlPersonalID = "";
 
             // Generating query for local command
-            $sqlLocalCommandQuery = "AND extra ILIKE '%\"localCommand\":\"%$filterLocalCommand%\"%'";
+            $sqlLocalCommandQuery = "AND extra ILIKE '$filterLocalCommand|%'";
             if (empty($filterLocalCommand)) $sqlLocalCommandQuery = "";
 
             // SQL query template
@@ -125,10 +125,10 @@ namespace Action {
             // Responses repack
             $result = [];
             foreach ($cards as $card) {
-                $extra = explode("|", $card["extra"]);
+                $extra = explode("*", $card["extra"]);
                 // If extra is NULL create new with empty fields
                 if (empty($extra)) $extra = ["", ""];
-                if (empty($extra[1])) $extra[1] = "";
+                if (count($extra) === 1) $extra = ["", $extra[0]];
 
                 $newCard = [
                     "id" => $card["id"],
