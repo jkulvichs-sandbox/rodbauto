@@ -59,6 +59,14 @@ App.prototype.filters = {
             $("#filter-local-command").val(val);
         }
     },
+    localCommandNotEmpty: {
+        getValue: function () {
+            return $("#filter-local-command-not-empty").prop("checked")
+        },
+        setValue: function (val) {
+            $("#filter-local-command-not-empty").prop("checked", val)
+        }
+    },
     // Return all filters in one object
     getAll: function () {
         return {
@@ -66,7 +74,8 @@ App.prototype.filters = {
             birthYear: this.birthYear.getValue(),
             recruitOffice: this.recruitOffice.getValue(),
             personalID: this.personalID.getValue(),
-            localCommand: this.localCommand.getValue()
+            localCommand: this.localCommand.getValue(),
+            localCommandNotEmpty: this.localCommandNotEmpty.getValue()
         };
     },
     // Set all filters equal to the list specified
@@ -76,6 +85,7 @@ App.prototype.filters = {
         if (filters.recruitOffice !== undefined) this.recruitOffice.setValue(filters.recruitOffice);
         if (filters.personalID !== undefined) this.personalID.setValue(filters.personalID);
         if (filters.localCommand !== undefined) this.localCommand.setValue(filters.localCommand);
+        if (filters.localCommandNotEmpty !== undefined) this.localCommandNotEmpty.setValue(filters.localCommandNotEmpty);
     },
 
     // Set search handler

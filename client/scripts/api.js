@@ -9,6 +9,7 @@ function API(errCallback, baseURL) {
     });
 
     this.baseURL = baseURL || "/server/api";
+    // this.baseURL = baseURL || "/rodb/server/api";
 }
 
 /**

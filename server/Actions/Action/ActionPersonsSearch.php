@@ -47,6 +47,7 @@ namespace Action {
             $filterRecruitOffice = empty($ctx->args["recruitOffice"]) ? "" : $ctx->pg->escape($ctx->args["recruitOffice"]);
             $filterPersonalID = empty($ctx->args["personalID"]) ? "" : $ctx->pg->escape($ctx->args["personalID"]);
             $filterLocalCommand = empty($ctx->args["localCommand"]) ? "" : $ctx->pg->escape($ctx->args["localCommand"]);
+            $filterLocalCommandNotEmpty = empty($ctx->args["localCommandNotEmpty"]) ? false : $ctx->pg->escape($ctx->args["localCommandNotEmpty"]);
 
             // results limit per each results type
             $limit = empty($ctx->args["limit"]) ? 30000 : $ctx->pg->escape($ctx->args["limit"]);
@@ -60,7 +61,7 @@ namespace Action {
             if (empty($filterPersonalID)) $sqlPersonalID = "";
 
             // Generating query for local command
-            $sqlLocalCommandQuery = "AND extra ILIKE '$filterLocalCommand|%'";
+            $sqlLocalCommandQuery = "AND extra ILIKE '$filterLocalCommand*%'";
             if (empty($filterLocalCommand)) $sqlLocalCommandQuery = "";
 
             // SQL query template
@@ -130,6 +131,7 @@ namespace Action {
                 if (empty($extra)) $extra = ["", ""];
                 if (count($extra) === 1) $extra = ["", $extra[0]];
 
+                // Create a new card
                 $newCard = [
                     "id" => $card["id"],
                     "name" => $card["person_name"],
@@ -140,7 +142,14 @@ namespace Action {
                     "recruitOfficeID" => $card["rec_office_id"],
                     "extra" => ["localCommand" => $extra[0], "comment" => $extra[1]],
                 ];
-                $result[] = $newCard;
+
+                if ($filterLocalCommandNotEmpty) {
+                    if (strlen($newCard["extra"]["localCommand"]) > 0) {
+                        $result[] = $newCard;
+                    }
+                } else {
+                    $result[] = $newCard;
+                }
             }
 
             (new Response($result))->Reply();
