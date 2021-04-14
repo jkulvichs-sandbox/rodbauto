@@ -12,5 +12,8 @@
     "dbname": "p_360_sp",
     "user": "admin",
     "password": ""
+  },
+  "sqlite": {
+    "filename": "../../rodb.sqlite"
   }
 }

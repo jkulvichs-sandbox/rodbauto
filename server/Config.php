@@ -40,6 +40,11 @@ namespace AppConfig {
         public $postgres = null;
 
         /**
+         * @var SQLiteConfig with sqlite local storage configuration
+         */
+        public $sqlite = null;
+
+        /**
          * Config constructor.
          * @param string $json JSON with app config
          */
@@ -53,6 +58,9 @@ namespace AppConfig {
 
             // PostgresConfig
             $this->postgres = new PostgresConfig($configMap->postgres);
+
+            // SQLiteConfig
+            $this->sqlite = new SQLiteConfig($configMap->sqlite);
         }
     }
 
@@ -155,6 +163,24 @@ namespace AppConfig {
                 $this->user,
                 $this->password
             );
+        }
+    }
+
+    /**
+     * Class SQLiteConfig to configure local SQLite storage connection
+     * @package AppConfig
+     */
+    class SQLiteConfig
+    {
+        public $filename;
+
+        /**
+         * SQLiteConfig constructor
+         * @param stdClass $configSQLiteMap SQLite configuration map
+         */
+        public function __construct($configSQLiteMap)
+        {
+            $this->filename = $configSQLiteMap->filename;
         }
     }
 

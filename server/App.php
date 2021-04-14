@@ -4,6 +4,7 @@ namespace Main {
 
     require_once "Config.php";
     require_once "Postgres/Postgres.php";
+    require_once "SQLite/SQLite.php";
     require_once "Actions/all.php";
     require_once "Structures/all.php";
 
@@ -16,6 +17,8 @@ namespace Main {
     use ErrorException;
     use Exception;
     use Postgres\Postgres;
+    use SQLite3;
+    use SQLite\SQLite;
 
     class App
     {
@@ -76,11 +79,14 @@ namespace Main {
         {
             try {
 
-                // Create an Postgres ORM
+                // Create a Postgres ORM
                 $pg = new Postgres(self::$db);
 
+                // Create a SQLite local storage
+                $sqlite = new SQLite(new SQLite3(App::$config->sqlite->filename), $pg);
+
                 // Create the request context
-                $ctx = new Context(App::$config, $pg, $action, $method, $args, $body);
+                $ctx = new Context(App::$config, $pg, $sqlite, $action, $method, $args, $body);
 
                 // select action and redirect control
                 switch ($action) {
