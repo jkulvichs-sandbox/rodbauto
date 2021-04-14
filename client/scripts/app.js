@@ -187,7 +187,8 @@ App.prototype.table = {
         var updateExtra = function () {
             onExtraChanged(card.id, {
                 comment: domCommentField.value,
-                localCommand: domLocalCommandField.value
+                localCommand: domLocalCommandField.value,
+                special: false
             })
         }
         $(domCommentField).on("change", updateExtra);

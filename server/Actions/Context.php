@@ -34,6 +34,15 @@ namespace Actions {
         }
 
         /**
+         * Add message to log history
+         * @param string $message
+         */
+        public function log($message)
+        {
+            $this->logHistory[] = $message;
+        }
+
+        /**
          * App config
          * @var Config
          */
@@ -74,6 +83,12 @@ namespace Actions {
          * @var string
          */
         public $body;
+
+        /**
+         * Actions log
+         * @var array
+         */
+        public $logHistory = [];
     }
 
 }

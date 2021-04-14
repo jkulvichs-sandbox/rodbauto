@@ -42,21 +42,29 @@ namespace Action {
         private function ExecutePUT($ctx)
         {
             // Filters
-            $personID = $ctx->pg->escape($ctx->args["id"]);
+            $personID = (int)$ctx->sqlite->escape($ctx->args["id"]);
             $extra = json_decode($ctx->body, true);
 
-            $extraComment = $ctx->pg->escape($extra["comment"]);
-            $extraLocalCommand = $ctx->pg->escape($extra["localCommand"]);
+            $extraComment = $ctx->sqlite->escape($extra["comment"]);
+            $extraLocalCommand = $ctx->sqlite->escape($extra["localCommand"]);
+            $extraSpecial = (int)$ctx->sqlite->escape($extra["special"]);
 
-            $extraString = "$extraLocalCommand*$extraComment";
-
-            // SQL query template
-            $sql = "
-                UPDATE priz10 SET p100 = '$extraString' WHERE p001 = '$personID';
-            ";
-
-            // SQL query
-            $ctx->pg->query($sql);
+            // Try to insert new data
+            try {
+                $ctx->sqlite->query("
+                    INSERT INTO people (p001, command, comment, special)
+                    VALUES ('$personID', '$extraLocalCommand', '$extraComment', $extraSpecial);
+                ");
+            } catch (ErrorException $e) {
+                // Otherwise try to add new row
+                $ctx->sqlite->query("
+                    UPDATE people SET 
+                        command = '$extraLocalCommand',
+                        comment = '$extraComment',
+                        special = $extraSpecial
+                    WHERE p001 = $personID
+                ");
+            }
 
             (new Response($extra))->Reply();
         }

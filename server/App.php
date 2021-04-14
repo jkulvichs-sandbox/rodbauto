@@ -13,6 +13,7 @@ namespace Main {
     use Action\ActionRecruitOfficesList;
     use Action\ActionUpdateExtra;
     use Actions\Context;
+    use Actions\Response;
     use AppConfig;
     use ErrorException;
     use Exception;
@@ -77,6 +78,8 @@ namespace Main {
          */
         public static function Main($action, $method, $args, $body)
         {
+            // Request context
+            $ctx = null;
             try {
 
                 // Create a Postgres ORM
@@ -100,19 +103,25 @@ namespace Main {
                         (new ActionUpdateExtra())->Execute($ctx);
                         break;
                     default:
-                        (new ActionError())->ExecuteError(
-                            ERROR_INCORRECT_ACTION,
-                            "incorrect api usage detected, use /api/*.php address or check your route script",
-                            $ctx
-                        );
+                        (new Response())
+                            ->AddError(
+                                400,
+                                ERROR_INCORRECT_ACTION,
+                                "incorrect api usage detected, use /api/*.php address or check your route script"
+                            )
+                            ->AddContext($ctx)
+                            ->Reply();
                 }
 
             } catch (Exception $e) {
-                (new ActionError())->ExecuteError(
-                    500,
-                    ERROR_APP,
-                    "app error: {$e->getMessage()} at {$e->getFile()}:{$e->getLine()}"
-                );
+                (new Response())
+                    ->AddError(
+                        500,
+                        ERROR_APP,
+                        "app error: {$e->getMessage()} at {$e->getFile()}:{$e->getLine()}"
+                    )
+                    ->AddContext($ctx)
+                    ->Reply();
                 App::Finalize($e->getCode());
             }
         }

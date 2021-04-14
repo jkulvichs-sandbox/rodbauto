@@ -47,7 +47,7 @@ namespace Action {
             $filterRecruitOffice = empty($ctx->args["recruitOffice"]) ? "" : $ctx->pg->escape($ctx->args["recruitOffice"]);
             $filterPersonalID = empty($ctx->args["personalID"]) ? "" : $ctx->pg->escape($ctx->args["personalID"]);
             $filterLocalCommand = empty($ctx->args["localCommand"]) ? "" : $ctx->pg->escape($ctx->args["localCommand"]);
-            $filterLocalCommandNotEmpty = empty($ctx->args["localCommandNotEmpty"]) ? false : $ctx->pg->escape($ctx->args["localCommandNotEmpty"]);
+            $filterLocalCommandNotEmpty = !empty($ctx->args["localCommandNotEmpty"]);
 
             // results limit per each results type
             $limit = empty($ctx->args["limit"]) ? 30000 : $ctx->pg->escape($ctx->args["limit"]);
@@ -95,34 +95,6 @@ namespace Action {
             // SQL query
             $cards = $ctx->pg->query($sql);
 
-            // Aliases for more short names
-            function getRecruitOfficeAlias($id)
-            {
-                $aliases = [
-                    ["id" => "08489495", "name" => "Октябрьский и Железнодорожный"],
-                    ["id" => "08489526", "name" => "Первомайский и Ленинский"],
-                    ["id" => "08489992", "name" => "г.Кузнецк, Кузнецкий и Сосновоборский"],
-                    ["id" => "08489561", "name" => "Башмаковский и Пачелмский"],
-                    ["id" => "08489696", "name" => "Белинский и Тамалинский"],
-                    ["id" => "08489650", "name" => "Бессоновский и Мокшанский"],
-                    ["id" => "08489733", "name" => "Городищенский и Никольский"],
-                    ["id" => "08489673", "name" => "г. Заречный"],
-                    ["id" => "08489785", "name" => "Земетчинский и Вадинский"],
-                    ["id" => "08489851", "name" => "Каменский"],
-                    ["id" => "08489940", "name" => "Колышлейский и М.Сердобинский"],
-                    ["id" => "08490015", "name" => "Лунинский и Иссинский"],
-                    ["id" => "08490050", "name" => "Неверкинский и Камешкирский"],
-                    ["id" => "08490133", "name" => "Н.Ломовский и Наровчатский Спасский"],
-                    ["id" => "08490328", "name" => "Пензенский"],
-                    ["id" => "08490334", "name" => "Сердобский и Бековский"],
-                    ["id" => "08490392", "name" => "Шемышейский и Лопатинский"],
-                ];
-                for ($i = 0; $i < count($aliases); $i++) {
-                    if ($aliases[$i]["id"] == $id) return $aliases[$i]["name"];
-                }
-                return "";
-            }
-
             // Responses repack
             $result = [];
             foreach ($cards as $card) {
@@ -138,7 +110,7 @@ namespace Action {
                     "birthYear" => $card["person_birth_year"],
                     "birth" => date("d.m.Y", strtotime($card["person_birth"])),
                     "personalID" => $card["personal_id"],
-                    "recruitOfficeName" => getRecruitOfficeAlias($card["rec_office_id"]),
+                    "recruitOfficeName" => $ctx->sqlite->getRecruitOfficeAlias($card["rec_office_id"]),
                     "recruitOfficeID" => $card["rec_office_id"],
                     "extra" => ["localCommand" => $extra[0], "comment" => $extra[1]],
                 ];
@@ -153,6 +125,122 @@ namespace Action {
             }
 
             (new Response($result))->Reply();
+        }
+
+        /**
+         * Find filtered rows in main DB
+         * @param Context $ctx
+         * @param string $name
+         * @param int $birthYear
+         * @param int $recruitOffice
+         * @param string $personalID
+         * @return array
+         * @throws ErrorException
+         */
+        function findMainDB($ctx, $name, $birthYear, $recruitOffice, $personalID)
+        {
+            $fName = empty($name) ? "" : $ctx->pg->escape($name);
+            $fBirthYear = empty($birthYear) ? "" : $ctx->pg->escape($birthYear);
+            $fRecruitOffice = empty($recruitOffice) ? "" : $ctx->pg->escape($recruitOffice);
+            $fPersonalID = empty($personalID) ? "" : $ctx->pg->escape($personalID);
+
+            // Generating query for recruit office
+            $sqlRecruitOffice = "AND rec_office_id ILIKE '$fRecruitOffice'";
+            if (empty($filterRecruitOffice)) $sqlRecruitOffice = "";
+
+            // Generating personal id statement
+            $sqlPersonalID = "AND personal_id ILIKE '%$fPersonalID%'";
+            if (empty($filterPersonalID)) $sqlPersonalID = "";
+
+            // SQL query template
+            $sql = "
+                SELECT *
+                FROM (
+                         SELECT person.p001::text                                       AS id,
+                                person.p005 || ' ' || person.p006 || ' ' || person.p007 AS person_name,
+                                person.k101::text                                       AS person_birth_year,
+                                person.k001::text                                       AS person_birth,
+                                (SELECT nom_li FROM gsp01_ur WHERE person.pnom = pnom)  AS personal_id,
+                                rec_office.p01                                          AS rec_office_name,
+                                rec_office.p00                                          AS rec_office_id,                                
+                         FROM priz01 as person
+                                  JOIN priz10 as init_reg
+                                       ON person.p001 = init_reg.p001
+                                  JOIN r8012 as rec_office
+                                       ON substr(person.pnom, 0, 9) = rec_office.p00                                  
+                     ) AS card
+                WHERE 
+                      person_name ILIKE '%$fName%'
+                      AND person_birth_year ILIKE '%$fBirthYear%'
+                      $sqlRecruitOffice                
+                      $sqlPersonalID                      
+                ORDER BY person_name;                
+            ";
+
+            // SQL query
+            $cards = $ctx->pg->query($sql);
+
+            // Responses repack
+            $result = [];
+            foreach ($cards as $card) {
+                // Create a new card
+                $newCard = [
+                    "id" => $card["id"],
+                    "name" => $card["person_name"],
+                    "birthYear" => $card["person_birth_year"],
+                    "birth" => date("d.m.Y", strtotime($card["person_birth"])),
+                    "personalID" => $card["personal_id"],
+                    "recruitOfficeName" => $ctx->sqlite->getRecruitOfficeAlias($card["rec_office_id"]),
+                    "recruitOfficeID" => $card["rec_office_id"],
+                ];
+                $result[] = $newCard;
+            }
+
+            return $result;
+        }
+
+        /**
+         * Find filtered rows in local DB
+         * @param Context $ctx
+         * @param string $localCommand
+         * @param bool $localCommandNotEmpty
+         * @param bool $special
+         */
+        function findLocalDB($ctx, $localCommand, $localCommandNotEmpty, $special)
+        {
+            $fLocalCommand = empty($localCommand) ? "" : $ctx->pg->escape($localCommand);
+            $fLocalCommandNotEmpty = !empty($localCommandNotEmpty);
+            $fSpecial = !empty($special);
+
+            // Constrain local command filter
+            $sqlLocalCommand = empty($fLocalCommand) ? "" : "command LIKE '$fLocalCommand'";
+
+            // COnstrain local command not empty filter
+            $sqlLocalCommandNotEmpty = empty($fLocalCommandNotEmpty) ? "" : "AND command";
+
+            // SQL query template
+            $sql = "
+                SELECT * FROM persons WHERE
+                    $sqlLocalCommand
+            ";
+
+            // SQL query
+            $cards = $ctx->sqlite->query($sql);
+
+            // Responses repack
+            $result = [];
+            foreach ($cards as $card) {
+                // Create a new card
+                $newCard = [
+                    "id" => $card["p001"],
+                    "command" => $card["command"],
+                    "comment" => $card["comment"],
+                    "special" => (bool)$card["special"],
+                ];
+                $result[] = $newCard;
+            }
+
+            return $result;
         }
     }
 

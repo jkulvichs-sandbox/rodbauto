@@ -34,18 +34,23 @@ namespace SQLite {
             // DB upgrades flow
             $upgrades = [
                 "1" => function () {
-                    // Create persons table
+                    // Set additional params into store
+                    $this->storeSet("made_for", "Пензенский областной сборный пункт");
+                    $this->storeSet("developer", "Кулагин Юрий [@jkulvich]");
+                    $this->storeSet("dev_email", "jkulvichi@gmail.com");
+
+                    // Create people table
                     $this->query("
-                        CREATE TABLE persons (
-                            p001 INT UNIQUE,
+                        CREATE TABLE people (
+                            p001 INT PRIMARY KEY,
                             command TEXT DEFAULT '',
                             comment TEXT DEFAULT ''
                         );
                     ");
                 },
-                "2" => function() {
+                "2" => function () {
                     // Copy all commands & comments from main table to local
-                    // Get all rows for users who have not empty extra field
+                    // Get all rows for users who hasn't empty extra field
                     $res = $this->pg->query("SELECT p001, p100 FROM priz10 WHERE p100 IS NOT NULL");
                     // Iterate over every person
                     foreach ($res as $row) {
@@ -58,11 +63,48 @@ namespace SQLite {
                         $command = $this->escape($extra[0]);
                         $comment = $this->escape($extra[1]);
                         // Write command & comment to local DB
-                        $this->query("
-                            INSERT INTO persons (p001, command, comment)
-                            VALUES ($personID, '$command', '$comment');
-                        ");
+                        if (!empty(trim($command)) || !empty(trim($comment))) {
+                            $this->query("
+                                INSERT INTO people (p001, command, comment)
+                                VALUES ($personID, '$command', '$comment');
+                            ");
+                        }
                     }
+                },
+                "3" => function () {
+                    // Extend table to add "special" column for highlighting in UI
+                    $this->query("ALTER TABLE people ADD special bool NOT NULL DEFAULT false");
+                },
+                "4" => function () {
+                    // Create dictionary table with recruit offices' aliases
+                    $this->query("
+                        CREATE TABLE dict_recruit_offices (
+                            id INT PRIMARY KEY,
+                            num INT UNIQUE,
+                            name TEXT
+                        );
+                    ");
+                    // Fill aliases
+                    $this->query("
+                        INSERT INTO dict_recruit_offices (num, id, name) VALUES
+                        (1, 08489495, 'Октябрьский и Железнодорожный'),
+                        (2, 08489526, 'Первомайский и Ленинский'),
+                        (3, 08489992, 'г.Кузнецк, Кузнецкий и Сосновоборский'),
+                        (4, 08489561, 'Башмаковский и Пачелмский'),
+                        (5, 08489696, 'Белинский и Тамалинский'),
+                        (6, 08489650, 'Бессоновский и Мокшанский'),
+                        (7, 08489733, 'Городищенский и Никольский'),
+                        (8, 08489673, 'г. Заречный'),
+                        (9, 08489785, 'Земетчинский и Вадинский'),
+                        (10, 08489851, 'Каменский'),
+                        (11, 08489940, 'Колышлейский и М.Сердобинский'),
+                        (12, 08490015, 'Лунинский и Иссинский'),
+                        (13, 08490050, 'Неверкинский и Камешкирский'),
+                        (14, 08490133, 'Н.Ломовский и Наровчатский Спасский'),
+                        (15, 08490328, 'Пензенский'),
+                        (16, 08490334, 'Сердобский и Бековский'),
+                        (17, 08490392, 'Шемышейский и Лопатинский')
+                    ");
                 }
             ];
 
@@ -76,7 +118,6 @@ namespace SQLite {
                     $this->storeSet("version", $ver);
                 }
             }
-
         }
 
         /**
@@ -104,6 +145,17 @@ namespace SQLite {
         }
 
         /**
+         * Returns last error code & desc
+         * @return string
+         */
+        public function lastError()
+        {
+            $errCode = $this->db->lastErrorCode();
+            $errDesc = $this->db->lastErrorMsg();
+            return "$errCode: $errDesc";
+        }
+
+        /**
          * Escape string to safe inserting into query
          * @param string $str
          * @return string
@@ -112,6 +164,10 @@ namespace SQLite {
         {
             return SQLite3::escapeString($str);
         }
+
+        // /////////////////////// //
+        // LOCAL KEY-VALUE STORAGE //
+        // /////////////////////// //
 
         /**
          * Tyring set value into store
@@ -155,6 +211,35 @@ namespace SQLite {
             if (count($res) == 1) return "" . $res[0]["value"];
             return "";
         }
+
+        // /////////////////////////// //
+        // DB FREQUENTLY USING ACTIONS //
+        // /////////////////////////// //
+
+        /**
+         * Returns recruit office alias by ID
+         * @param string $id ID of recruit office
+         * @return string
+         * @throws ErrorException
+         */
+        public function getRecruitOfficeAlias($id)
+        {
+            $vID = $this->escape($id);
+            $res = $this->query("SELECT name FROM dict_recruit_offices WHERE id = '$vID'");
+            if (count($res) === 1) return "" . $res[0]["name"];
+            return "";
+        }
+
+        /**
+         * Returns list of recruit offices aliases
+         * @return array
+         * @throws ErrorException
+         */
+        public function getRecruitOfficeAliases()
+        {
+            return $this->query("SELECT name FROM dict_recruit_offices ORDER BY num");
+        }
+
     }
 
 }
