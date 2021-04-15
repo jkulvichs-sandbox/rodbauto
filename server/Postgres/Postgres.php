@@ -62,6 +62,15 @@ namespace Postgres {
         {
             return pg_escape_string($this->db, $str);
         }
+
+        /**
+         * Return last error with DB
+         * @return string
+         */
+        public function lastError()
+        {
+            return pg_last_error($this->db);
+        }
     }
 
 }

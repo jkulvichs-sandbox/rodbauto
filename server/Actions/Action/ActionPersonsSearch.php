@@ -41,116 +41,106 @@ namespace Action {
          */
         private function ExecuteGET($ctx)
         {
-            // Filters
-            $filterName = empty($ctx->args["name"]) ? "" : $ctx->pg->escape($ctx->args["name"]);
-            $filterBirthYear = empty($ctx->args["birthYear"]) ? "" : $ctx->pg->escape($ctx->args["birthYear"]);
-            $filterRecruitOffice = empty($ctx->args["recruitOffice"]) ? "" : $ctx->pg->escape($ctx->args["recruitOffice"]);
-            $filterPersonalID = empty($ctx->args["personalID"]) ? "" : $ctx->pg->escape($ctx->args["personalID"]);
-            $filterLocalCommand = empty($ctx->args["localCommand"]) ? "" : $ctx->pg->escape($ctx->args["localCommand"]);
-            $filterLocalCommandNotEmpty = !empty($ctx->args["localCommandNotEmpty"]);
+            // Filters for main DB
+            $fName = $ctx->args["name"];
+            $fBirthYear = $ctx->args["birthYear"];
+            $fRecruitOffice = $ctx->args["recruitOffice"];
+            $fPersonalID = $ctx->args["personalID"];
 
-            // results limit per each results type
-            $limit = empty($ctx->args["limit"]) ? 30000 : $ctx->pg->escape($ctx->args["limit"]);
+            // Is any filter enabled for main DB
+            $fMainDBEnabled = !empty($fName) || !empty($fBirthYear) || !empty($fRecruitOffice) || !empty($fPersonalID);
 
-            // Generating query for recruit office
-            $sqlRecruitOffice = "AND rec_office_id ILIKE '$filterRecruitOffice'";
-            if (empty($filterRecruitOffice)) $sqlRecruitOffice = "";
+            // Filters for local DB
+            $fLocalCommand = $ctx->args["localCommand"];
+            $fLocalCommandNotEmpty = $ctx->args["localCommandNotEmpty"];
+            $fSpecial = $ctx->args["special"];
 
-            // Generating personal id statement
-            $sqlPersonalID = "AND personal_id ILIKE '%$filterPersonalID%'";
-            if (empty($filterPersonalID)) $sqlPersonalID = "";
+            // Is any filter enabled for local DB
+            $fLocalDBEnabled = !empty($fLocalCommand) || !empty($fLocalCommandNotEmpty) || !empty($fSpecial);
 
-            // Generating query for local command
-            $sqlLocalCommandQuery = "AND extra ILIKE '$filterLocalCommand*%'";
-            if (empty($filterLocalCommand)) $sqlLocalCommandQuery = "";
+            // Main DB filters' group
+            $mainFilters = [
+                "name" => $fName,
+                "birthYear" => $fBirthYear,
+                "recruitOffice" => $fRecruitOffice,
+                "personalID" => $fPersonalID
+            ];
 
-            // SQL query template
-            $sql = "
-                SELECT *
-                FROM (
-                         SELECT person.p001::text                                       AS id,
-                                person.p005 || ' ' || person.p006 || ' ' || person.p007 AS person_name,
-                                person.k101::text                                       AS person_birth_year,
-                                person.k001::text                                       AS person_birth,
-                                (SELECT nom_li FROM gsp01_ur WHERE person.pnom = pnom)  AS personal_id,
-                                rec_office.p01                                          AS rec_office_name,
-                                rec_office.p00                                          AS rec_office_id,
-                                init_reg.p100::text                                     AS extra
-                         FROM priz01 as person
-                                  JOIN priz10 as init_reg
-                                       ON person.p001 = init_reg.p001
-                                  JOIN r8012 as rec_office
-                                       ON substr(person.pnom, 0, 9) = rec_office.p00                                  
-                     ) AS card
-                WHERE 
-                      person_name ILIKE '%$filterName%'
-                      AND person_birth_year ILIKE '%$filterBirthYear%'
-                      $sqlRecruitOffice                
-                      $sqlPersonalID
-                      $sqlLocalCommandQuery
-                ORDER BY person_name
-                LIMIT $limit;
-            ";
+            // Local DB filters' group
+            $localFilters = [
+                "localCommand" => $fLocalCommand,
+                "localCommandNotEmpty" => $fLocalCommandNotEmpty,
+                "special" => $fSpecial
+            ];
 
-            // SQL query
-            $cards = $ctx->pg->query($sql);
+            // Flow to decide which behaviour will be applied
+            // Depends on selected filters' group
+            $cardsTotal = [];
+            if (!$fLocalDBEnabled) {
+                // Local DB filters are disabled.
+                // Fetch all data from main DB, then fetch all IDs from main for local DB to merge.
 
-            // Responses repack
-            $result = [];
-            foreach ($cards as $card) {
-                $extra = explode("*", $card["extra"]);
-                // If extra is NULL create new with empty fields
-                if (empty($extra)) $extra = ["", ""];
-                if (count($extra) === 1) $extra = ["", $extra[0]];
+                // Get all records satisfying the filter from main DB
+                $cardsMain = $this->filterMainDB($ctx, $mainFilters);
+                $cardsMainIDs = $this->cardsIDs($cardsMain);
+                // Get only specified IDs from main
+                $cardsLocal = $this->filterLocalDB($ctx, ["IDs" => $cardsMainIDs]);
+                // Merge main & local data
+                $cardsTotal = $this->mergeTotalCardArray($cardsMain, $cardsLocal);
+            } else if (!$fMainDBEnabled) {
+                // Main DB filters are disabled
+                // Fetch all data from local DB, then all IDs from local for main to merge.
 
-                // Create a new card
-                $newCard = [
-                    "id" => $card["id"],
-                    "name" => $card["person_name"],
-                    "birthYear" => $card["person_birth_year"],
-                    "birth" => date("d.m.Y", strtotime($card["person_birth"])),
-                    "personalID" => $card["personal_id"],
-                    "recruitOfficeName" => $ctx->sqlite->getRecruitOfficeAlias($card["rec_office_id"]),
-                    "recruitOfficeID" => $card["rec_office_id"],
-                    "extra" => ["localCommand" => $extra[0], "comment" => $extra[1]],
-                ];
+                // Get all records satisfying the filter from local DB
+                $cardsLocal = $this->filterLocalDB($ctx, $localFilters);
+                $cardsLocalIDs = $this->cardsIDs($cardsLocal);
+                // Get only specified IDs from local
+                $cardsMain = $this->filterMainDB($ctx, ["IDs" => $cardsLocalIDs]);
+                // Merge local & main data
+                $cardsTotal = $this->mergeTotalCardArray($cardsLocal, $cardsMain);
+            } else {
+                // Both groups of filters are activated
+                // Fetch data from main DB and local DB then find intersections on ID
+                // then merge
 
-                if ($filterLocalCommandNotEmpty) {
-                    if (strlen($newCard["extra"]["localCommand"]) > 0) {
-                        $result[] = $newCard;
-                    }
-                } else {
-                    $result[] = $newCard;
-                }
+                // Get all records satisfying filters
+                $cardsMain = $this->filterMainDB($ctx, $mainFilters);
+                $cardsLocal = $this->filterLocalDB($ctx, $localFilters);
+
+                $cardsTotal = $this->mergeTotalCardArray($cardsMain, $cardsLocal, true);
             }
 
-            (new Response($result))->Reply();
+            (new Response($cardsTotal))->AddContext($ctx)->Reply();
         }
 
         /**
          * Find filtered rows in main DB
          * @param Context $ctx
-         * @param string $name
-         * @param int $birthYear
-         * @param int $recruitOffice
-         * @param string $personalID
+         * @param array $filters
          * @return array
          * @throws ErrorException
          */
-        function findMainDB($ctx, $name, $birthYear, $recruitOffice, $personalID)
+        function filterMainDB($ctx, $filters)
         {
-            $fName = empty($name) ? "" : $ctx->pg->escape($name);
-            $fBirthYear = empty($birthYear) ? "" : $ctx->pg->escape($birthYear);
-            $fRecruitOffice = empty($recruitOffice) ? "" : $ctx->pg->escape($recruitOffice);
-            $fPersonalID = empty($personalID) ? "" : $ctx->pg->escape($personalID);
+            $fName = empty($filters["name"]) ? "" : $ctx->pg->escape($filters["name"]);
+            $fBirthYear = empty($filters["birthYear"]) ? "" : $ctx->pg->escape($filters["birthYear"]);
+            $fRecruitOffice = empty($filters["recruitOffice"]) ? "" : $ctx->pg->escape($filters["recruitOffice"]);
+            $fPersonalID = empty($filters["personalID"]) ? "" : $ctx->pg->escape($filters["personalID"]);
+            $fIDs = empty($filters["IDs"]) ? [] : array_map(function ($id) {
+                return "'$id'";
+            }, $filters["IDs"]);
 
             // Generating query for recruit office
             $sqlRecruitOffice = "AND rec_office_id ILIKE '$fRecruitOffice'";
-            if (empty($filterRecruitOffice)) $sqlRecruitOffice = "";
+            if (empty($fRecruitOffice)) $sqlRecruitOffice = "";
 
             // Generating personal id statement
             $sqlPersonalID = "AND personal_id ILIKE '%$fPersonalID%'";
-            if (empty($filterPersonalID)) $sqlPersonalID = "";
+            if (empty($fPersonalID)) $sqlPersonalID = "";
+
+            // Generating IDs statement for searching only in specific set of people
+            $sqlIDs = "AND id IN (" . join(", ", $fIDs) . ")";
+            if (empty($fIDs)) $sqlIDs = "";
 
             // SQL query template
             $sql = "
@@ -162,7 +152,7 @@ namespace Action {
                                 person.k001::text                                       AS person_birth,
                                 (SELECT nom_li FROM gsp01_ur WHERE person.pnom = pnom)  AS personal_id,
                                 rec_office.p01                                          AS rec_office_name,
-                                rec_office.p00                                          AS rec_office_id,                                
+                                rec_office.p00                                          AS rec_office_id                                
                          FROM priz01 as person
                                   JOIN priz10 as init_reg
                                        ON person.p001 = init_reg.p001
@@ -173,74 +163,193 @@ namespace Action {
                       person_name ILIKE '%$fName%'
                       AND person_birth_year ILIKE '%$fBirthYear%'
                       $sqlRecruitOffice                
-                      $sqlPersonalID                      
+                      $sqlPersonalID        
+                      $sqlIDs
                 ORDER BY person_name;                
             ";
 
             // SQL query
-            $cards = $ctx->pg->query($sql);
+            $rows = $ctx->pg->query($sql);
 
+            return $this->rowsToCards($ctx, $rows, "main");
+        }
+
+        /**
+         * Find filtered rows in local DB
+         * @param Context $ctx
+         * @param array $filters
+         * @throws ErrorException
+         */
+        function filterLocalDB($ctx, $filters)
+        {
+            $fLocalCommand = empty($filters["localCommand"])
+                ? []
+                : array_map(function ($cmd) use ($ctx) {
+                    $eCmd = $ctx->sqlite->escape(trim($cmd));
+                    return "'$eCmd'";
+                },
+                    explode(",", $filters["localCommand"])
+                );
+            $fLocalCommandNotEmpty = !empty($filters["localCommandNotEmpty"]);
+            $fSpecial = !empty($filters["special"]);
+            $fIDs = empty($filters["IDs"]) ? [] : $filters["IDs"];
+
+            // Constrain local command filter
+            $sqlLocalCommand = empty($fLocalCommand) ? "" : "AND trim(command) IN (" . join(", ", $fLocalCommand) . ")";
+
+            // Constrain local command not empty filter
+            $sqlLocalCommandNotEmpty = empty($fLocalCommandNotEmpty) ? "" : "AND trim(command) NOT LIKE ''";
+
+            // Constrain special flag filter
+            $sqlSpecial = empty($fSpecial) ? "" : "AND special = true";
+
+            // Constrain IDs filter to search only in specified set of people
+            $sqlIDs = empty($fIDs) ? "" : "AND p001 IN (" . join(", ", $fIDs) . ")";
+
+            // SQL query template
+            $sql = "
+                SELECT * FROM people WHERE
+                    p001 IS NOT NULL
+                    $sqlLocalCommand
+                    $sqlLocalCommandNotEmpty
+                    $sqlSpecial
+                    $sqlIDs
+            ";
+
+            // SQL query
+            $rows = $ctx->sqlite->query($sql);
+
+            return $this->rowsToCards($ctx, $rows, "local");
+        }
+
+        /**
+         * Merges local & main card with same id to total card with all data
+         * @param $card1
+         * @param $card2
+         * @return array
+         * @throws ErrorException
+         */
+        function mergeTotalCard($card1, $card2)
+        {
+            $cardLocal = $card1["_source"] == "local" ? $card1 : $card2;
+            $cardMain = $card1["_source"] == "main" ? $card1 : $card2;
+
+            // Some assertions to prevent most common logic wrongs
+            if ($cardLocal == $cardMain)
+                throw new ErrorException("can't merge cards with same source or _total source");
+            if ($cardLocal["id"] != $cardMain["id"])
+                throw new ErrorException("can't merge cards with different id");
+
+            return [
+                "_source" => "total",
+                "id" => $cardLocal["id"],
+                "name" => $cardMain["name"],
+                "birthYear" => $cardMain["birthYear"],
+                "birth" => $cardMain["birth"],
+                "personalID" => $cardMain["personalID"],
+                "recruitOfficeName" => $cardMain["recruitOfficeName"],
+                "recruitOfficeID" => $cardMain["recruitOfficeID"],
+                "command" => $cardLocal["command"],
+                "comment" => $cardLocal["comment"],
+                "special" => $cardLocal["special"],
+            ];
+        }
+
+        /**
+         * Merges main cards & related cards with same id by iteration through main cards.
+         * Or leave main card as is if no related card there.
+         * @param array $cards
+         * @param array $relatedCards
+         * @param bool $intersection if enabled - cards without pair card in related will be not included
+         * @return array
+         * @throws ErrorException
+         */
+        function mergeTotalCardArray($cards, $relatedCards, $intersection = false)
+        {
+            // Find short & long array for more quickly iteration
+            $shortCards = $cards;
+            $longCards = $relatedCards;
+            if (count($relatedCards) < count($cards)) {
+                $shortCards = $relatedCards;
+                $longCards = $cards;
+            }
+
+            // Make associative cards' arrays to speed up processing
+            $assocRelatedCards = $this->cardsToAssoc($longCards);
+
+            // Merge cards or leave they as is if no related cards
+            $totalCards = [];
+            foreach ($shortCards as $card) {
+                $relatedCard = $assocRelatedCards[$card["id"]];
+                if ($relatedCard) {
+                    $totalCards[] = $this->mergeTotalCard($card, $relatedCard);
+                } else {
+                    if (!$intersection) {
+                        $totalCards[] = $card;
+                    }
+                }
+            }
+
+            return $totalCards;
+        }
+
+        /**
+         * Converts DB result rows into cards
+         * @param Context $ctx
+         * @param array $rows
+         * @return array
+         * @throws ErrorException
+         */
+        function rowsToCards($ctx, $rows, $source)
+        {
             // Responses repack
             $result = [];
-            foreach ($cards as $card) {
+            foreach ($rows as $card) {
                 // Create a new card
                 $newCard = [
-                    "id" => $card["id"],
+                    "_source" => $source,
+                    "id" => empty($card["id"]) ? $card["p001"] : $card["id"],
                     "name" => $card["person_name"],
                     "birthYear" => $card["person_birth_year"],
                     "birth" => date("d.m.Y", strtotime($card["person_birth"])),
                     "personalID" => $card["personal_id"],
                     "recruitOfficeName" => $ctx->sqlite->getRecruitOfficeAlias($card["rec_office_id"]),
                     "recruitOfficeID" => $card["rec_office_id"],
+                    "command" => $card["command"],
+                    "comment" => $card["comment"],
+                    "special" => !empty($card["special"] && $card["special"] != "false"),
                 ];
                 $result[] = $newCard;
+                $ctx->log($card["special"]);
             }
 
             return $result;
         }
 
         /**
-         * Find filtered rows in local DB
-         * @param Context $ctx
-         * @param string $localCommand
-         * @param bool $localCommandNotEmpty
-         * @param bool $special
+         * Returns associative array from simple cards' array
+         * @param array $cards
+         * @return array
          */
-        function findLocalDB($ctx, $localCommand, $localCommandNotEmpty, $special)
+        function cardsToAssoc($cards)
         {
-            $fLocalCommand = empty($localCommand) ? "" : $ctx->pg->escape($localCommand);
-            $fLocalCommandNotEmpty = !empty($localCommandNotEmpty);
-            $fSpecial = !empty($special);
-
-            // Constrain local command filter
-            $sqlLocalCommand = empty($fLocalCommand) ? "" : "command LIKE '$fLocalCommand'";
-
-            // COnstrain local command not empty filter
-            $sqlLocalCommandNotEmpty = empty($fLocalCommandNotEmpty) ? "" : "AND command";
-
-            // SQL query template
-            $sql = "
-                SELECT * FROM persons WHERE
-                    $sqlLocalCommand
-            ";
-
-            // SQL query
-            $cards = $ctx->sqlite->query($sql);
-
-            // Responses repack
-            $result = [];
+            $assoc = [];
             foreach ($cards as $card) {
-                // Create a new card
-                $newCard = [
-                    "id" => $card["p001"],
-                    "command" => $card["command"],
-                    "comment" => $card["comment"],
-                    "special" => (bool)$card["special"],
-                ];
-                $result[] = $newCard;
+                $assoc[$card["id"]] = $card;
             }
+            return $assoc;
+        }
 
-            return $result;
+        /**
+         * Returns array of cards' ids
+         * @param array $cards
+         * @return array
+         */
+        function cardsIDs($cards)
+        {
+            $ids = [];
+            foreach ($cards as $card) $ids[] = $card["id"];
+            return $ids;
         }
     }
 

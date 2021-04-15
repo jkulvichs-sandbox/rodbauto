@@ -1,8 +1,13 @@
-.table-row {
+.table-row,
+.table-row-special {
     width: 1000px;
     height: 40px;
     overflow-y: hidden;
     border-bottom: 1px solid #757575;
+}
+
+.table-row-special {
+    background: #BBDEFB;
 }
 
 .table-header {

@@ -131,7 +131,7 @@ App.prototype.table = {
 
         // Main Person's Card
         var domCard = document.createElement("div");
-        domCard.className = "table-row";
+        domCard.className = card.special ? "table-row-special" : "table-row";
 
         // Index Column
         var domIndex = document.createElement("div");
@@ -166,7 +166,7 @@ App.prototype.table = {
         // Local Comment Field
         var domLocalCommandField = document.createElement("input");
         domLocalCommandField.className = "row-local-command-field";
-        domLocalCommandField.value = card.extra.localCommand || "";
+        domLocalCommandField.value = card.command || "";
         // Local Command Column
         var domLocalCommand = document.createElement("div");
         domLocalCommand.className = "row-local-command";
@@ -176,7 +176,7 @@ App.prototype.table = {
         // Comment Field
         var domCommentField = document.createElement("input");
         domCommentField.className = "row-comment-field";
-        domCommentField.value = card.extra.comment || "";
+        domCommentField.value = card.comment || "";
         // Comment Column
         var domComment = document.createElement("div");
         domComment.className = "row-comment";

@@ -78,6 +78,7 @@ namespace Actions {
             "method" => "",
             "args" => "",
             "body" => "",
+            "postgre_error" => "",
             "sqlite_error" => "",
             "log" => []
         ];
@@ -94,6 +95,7 @@ namespace Actions {
             $this->context["args"] = $ctx->args;
             $this->context["body"] = $ctx->body;
             $this->context["sqlite_error"] = $ctx->sqlite->lastError();
+            $this->context["postgre_error"] = $ctx->pg->lastError();
             $this->context["log"] = $ctx->logHistory;
             return $this;
         }
