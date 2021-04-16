@@ -77,7 +77,7 @@ namespace Action {
             // Depends on selected filters' group
             $cardsTotal = [];
             if (!$fLocalDBEnabled) {
-                // Local DB filters are disabled.
+                // Local DB filters are disabled. Main DB filters are optional.
                 // Fetch all data from main DB, then fetch all IDs from main for local DB to merge.
 
                 // Get all records satisfying the filter from main DB
@@ -88,7 +88,7 @@ namespace Action {
                 // Merge main & local data
                 $cardsTotal = $this->mergeTotalCardArray($cardsMain, $cardsLocal);
             } else if (!$fMainDBEnabled) {
-                // Main DB filters are disabled
+                // Main DB filters are disabled. Local DB filters are optional.
                 // Fetch all data from local DB, then all IDs from local for main to merge.
 
                 // Get all records satisfying the filter from local DB
@@ -101,7 +101,7 @@ namespace Action {
             } else {
                 // Both groups of filters are activated
                 // Fetch data from main DB and local DB then find intersections on ID
-                // then merge
+                // then merge with reducing by intersection
 
                 // Get all records satisfying filters
                 $cardsMain = $this->filterMainDB($ctx, $mainFilters);
