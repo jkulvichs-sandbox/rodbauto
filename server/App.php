@@ -11,6 +11,7 @@ namespace Main {
     use Action\ActionError;
     use Action\ActionPersonsSearch;
     use Action\ActionRecruitOfficesList;
+    use Action\ActionSummaryTotal;
     use Action\ActionUpdateExtra;
     use Actions\Context;
     use Actions\Response;
@@ -101,6 +102,9 @@ namespace Main {
                         break;
                     case ACTION_UPDATE_EXTRA:
                         (new ActionUpdateExtra())->Execute($ctx);
+                        break;
+                    case ACTION_SUMMARY_TOTAL:
+                        (new ActionSummaryTotal())->Execute($ctx);
                         break;
                     default:
                         (new Response())

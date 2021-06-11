@@ -96,6 +96,7 @@ namespace Action {
                 $cardsLocalIDs = $this->cardsIDs($cardsLocal);
                 // Get only specified IDs from local
                 $cardsMain = $this->filterMainDB($ctx, ["IDs" => $cardsLocalIDs]);
+
                 // Merge local & main data
                 $cardsTotal = $this->mergeTotalCardArray($cardsLocal, $cardsMain);
             } else {

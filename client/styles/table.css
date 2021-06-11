@@ -97,3 +97,12 @@
     margin: 5px 0 0 5px;
     width: 155px;
 }
+
+#total-container table,
+#total-container th,
+#total-container tr,
+#total-container td {
+    border: 1px solid black;
+    border-spacing: 0;
+    text-align: center;
+}

@@ -293,3 +293,112 @@ App.prototype.spinner = {
         $("#spinner").fadeIn(0);
     }
 }
+
+/**
+ * Hide all other pages but selected
+ */
+App.prototype.showPage = function (name) {
+    var pages = $(".page");
+    for (var i = 0; i < pages.length; i++) {
+        if (pages[i].attributes["name"].value === name) {
+            $(pages[i]).fadeIn(0);
+        } else {
+            $(pages[i]).hide();
+        }
+    }
+}
+
+/**
+ * Calc total data and make a table
+ */
+App.prototype.calcTotal = function (total) {
+    // Map for deliveries and time
+    // Delivery date (unix seconds) -> ROID with value count
+    var deliveries = {};
+
+    // Calc for deliveries matrix
+    for (var roid in total) {
+        var ro = total[roid];
+        for (var i = 0; i < ro.deliveries.length; i++) {
+            if (!deliveries[ro.deliveries[i].date]) {
+                deliveries[ro.deliveries[i].date] = {};
+            }
+            deliveries[ro.deliveries[i].date][roid] = ro.deliveries[i].count;
+        }
+    }
+
+    // Get table container
+    var container = $("#total-container");
+
+    // Create table element
+    var table = document.createElement("table");
+    container.append(table);
+
+    // Create table header row
+    var tableTr = document.createElement("tr");
+    table.appendChild(tableTr);
+
+    // Create table header cells
+    {
+        var titles = [];
+        titles.push("ВК");
+        titles.push("На учете");
+        titles.push("В БД");
+        titles.push("%");
+        for (var date in deliveries) {
+            var d = new Date(date * 1000);
+            titles.push(d.getDate() + "." + (d.getMonth() + 1));
+        }
+        titles.push("Всего");
+        titles.push("Задание");
+        titles.push("%");
+
+        var headers = [];
+        titles.forEach(function (title) {
+            var th = document.createElement("th");
+            $(th).text(title);
+            headers.push(th);
+        });
+        headers.forEach(function (header) {
+            $(header).prop("scope", "col");
+            tableTr.appendChild(header);
+        });
+    }
+
+    var calcPrc = function (val, total) {
+        var ratio = val/total;
+        return ((ratio * 10000)|0)/100;
+    }
+
+    // Create table rows
+    for (var roid in total) {
+        var row = document.createElement("tr");
+        table.appendChild(row);
+
+        ro = total[roid];
+
+        // Create table row cells
+        {
+            var titles = [];
+            titles.push(ro.recruitOffice);
+            titles.push(ro.registered);
+            titles.push(ro.stored);
+            titles.push(calcPrc(ro.stored, ro.registered) + "%");
+            var dsum = 0;
+            for (var date in deliveries) {
+                var d = deliveries[date][roid];
+                if (d) dsum += d;
+                titles.push(d);
+            }
+            titles.push(dsum);
+            titles.push(ro.taskPlan);
+            titles.push(calcPrc(dsum, ro.taskPlan) + "%");
+
+            titles.forEach(function (title) {
+                var td = document.createElement("td");
+                $(td).text(title);
+                row.appendChild(td);
+            });
+        }
+    }
+}

@@ -16,4 +16,7 @@ namespace Action {
     require_once "ActionUpdateExtra.php";
     define("ACTION_UPDATE_EXTRA", "update_extra");
 
+    require_once "ActionSummaryTotal.php";
+    define("ACTION_SUMMARY_TOTAL", "summary_total");
+
 }

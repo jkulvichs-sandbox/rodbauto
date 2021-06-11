@@ -14,6 +14,14 @@ window.onload = function () {
     // App API & interaction
     var app = new App();
 
+    // Set handler to show total table
+    $("#show-total").click(function () {
+        app.showPage("total");
+        api.getSummaryTotal(function (total) {
+            app.calcTotal(total);
+        });
+    });
+
     // Wait for all server's resources loaded
     // Here you can safely work with form inputs
     installResources(api, app, function () {

@@ -105,6 +105,25 @@ namespace SQLite {
                         (16, '08490334', 'Сердобский и Бековский'),
                         (17, '08490392', 'Шемышейский и Лопатинский')
                     ");
+                },
+                "5" => function () {
+                    // Create new table to store "registered" and "stored" for every recruit office
+                    $this->query("
+                        CREATE TABLE recruit_offices_deliveries (
+                            id TEXT PRIMARY KEY,                            
+                            registered INT,
+                            task INT
+                        );
+                    ");
+                    // Filling up
+                    $aliases = $this->getRecruitOfficeAliases();
+                    foreach ($aliases as $alias) {
+                        $roid = $alias["id"];
+                        $this->query("
+                            INSERT INTO recruit_offices_deliveries (id, registered, task) VALUES
+                            ($roid, 0, 0)
+                        ");
+                    }
                 }
             ];
 
@@ -238,6 +257,28 @@ namespace SQLite {
         public function getRecruitOfficeAliases()
         {
             return $this->query("SELECT * FROM dict_recruit_offices ORDER BY num");
+        }
+
+        /**
+         * Returns registered count by roid
+         * @param string $roid Recruit Office ID
+         * @return int
+         * @throws ErrorException
+         */
+        public function getRecruitOfficeRegistered($roid)
+        {
+            return $this->query("SELECT registered FROM recruit_offices_deliveries WHERE id = $roid")[0]["registered"];
+        }
+
+        /**
+         * Returns task count by roid
+         * @param string $roid Recruit Office ID
+         * @return int
+         * @throws ErrorException
+         */
+        public function getRecruitOfficeTask($roid)
+        {
+            return $this->query("SELECT task FROM recruit_offices_deliveries WHERE id = $roid")[0]["task"];
         }
 
     }

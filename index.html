@@ -10,107 +10,118 @@
 <div id="app">
     <center>
         <div id="content">
+            <div class="page" name="main">
 
-            <!-- FILTERS -->
-            <div class="block block-secondary">
+                <!-- FILTERS -->
+                <div class="block block-secondary">
 
-                <table
-                    width="100%"
-                    border="0"
-                    cellpadding="0"
-                    cellspacing="0"
-                    style="color: #000000"
-                >
-                    <!-- Partial Name Filter -->
-                    <tr>
-                        <td width="200px"><label for="filter-name">ФИО</label></td>
-                        <td><input id="filter-name" type="text" class="filter-field"></td>
-                    </tr>
-                    <!-- Birth Year Filter -->
-                    <tr>
-                        <td><label for="filter-birth-year">Год рождения</label></td>
-                        <td><input id="filter-birth-year" type="text" class="filter-field"></td>
-                    </tr>
-                    <!-- Recruit Office Filter by ID -->
-                    <tr>
-                        <td><label for="filter-recruit-office">Военкомат</label></td>
-                        <td><select id="filter-recruit-office" class="filter-field"></select>
-                        </td>
-                    </tr>
-                    <!-- Personal ID Filter -->
-                    <tr>
-                        <td><label for="filter-personal-id">Жетон</label></td>
-                        <td><input id="filter-personal-id" type="text" class="filter-field"></td>
-                    </tr>
-                    <!-- Local Command Filter -->
-                    <tr>
-                        <td><label for="filter-local-command">Внутренняя команда</label></td>
-                        <td><input id="filter-local-command" type="text" class="filter-field">
-                        </td>
-                    </tr>
-                    <!-- Flags -->
-                    <tr>
-                        <td></td>
-                        <td>
-                            <!-- Local Command Filter Not Empty -->
-                            <input id="filter-local-command-not-empty" type="checkbox">
-                            <label for="filter-local-command-not-empty">Внутренняя команда не пустая</label>
-                            <!-- Only Specials -->
-                            <input id="filter-special" type="checkbox" style="margin-left: 40px">
-                            <label for="filter-special">Только избранные</label>
-                        </td>
-                    </tr>
-                </table>
+                    <table
+                            width="100%"
+                            border="0"
+                            cellpadding="0"
+                            cellspacing="0"
+                            style="color: #000000"
+                    >
+                        <!-- Partial Name Filter -->
+                        <tr>
+                            <td width="200px"><label for="filter-name">ФИО</label></td>
+                            <td><input id="filter-name" type="text" class="filter-field"></td>
+                        </tr>
+                        <!-- Birth Year Filter -->
+                        <tr>
+                            <td><label for="filter-birth-year">Год рождения</label></td>
+                            <td><input id="filter-birth-year" type="text" class="filter-field"></td>
+                        </tr>
+                        <!-- Recruit Office Filter by ID -->
+                        <tr>
+                            <td><label for="filter-recruit-office">Военкомат</label></td>
+                            <td><select id="filter-recruit-office" class="filter-field"></select>
+                            </td>
+                        </tr>
+                        <!-- Personal ID Filter -->
+                        <tr>
+                            <td><label for="filter-personal-id">Жетон</label></td>
+                            <td><input id="filter-personal-id" type="text" class="filter-field"></td>
+                        </tr>
+                        <!-- Local Command Filter -->
+                        <tr>
+                            <td><label for="filter-local-command">Внутренняя команда</label></td>
+                            <td><input id="filter-local-command" type="text" class="filter-field">
+                            </td>
+                        </tr>
+                        <!-- Flags -->
+                        <tr>
+                            <td></td>
+                            <td>
+                                <!-- Local Command Filter Not Empty -->
+                                <input id="filter-local-command-not-empty" type="checkbox">
+                                <label for="filter-local-command-not-empty">Внутренняя команда не пустая</label>
+                                <!-- Only Specials -->
+                                <input id="filter-special" type="checkbox" style="margin-left: 40px">
+                                <label for="filter-special">Только избранные</label>
+                            </td>
+                        </tr>
+                    </table>
 
-                <!-- Search Button -->
-                <button id="search-btn">ПОИСК</button>
+                    <!-- Search Button -->
+                    <button id="search-btn">ПОИСК</button>
 
-            </div>
+                </div>
 
-            <!-- HINT LINE -->
-            <div id="hint-line" class="block block-secondary">
-                <img id="spinner" src="./client/assets/images/spinner.gif" width="13px" alt="spinner"
-                     style="display: none">
-                <span id="hint-line-text">Укажите фильтры и начните поиск</span>
-            </div>
+                <!-- HINT LINE -->
+                <div id="hint-line" class="block block-secondary">
+                    <img id="spinner" src="./client/assets/images/spinner.gif" width="13px" alt="spinner"
+                         style="display: none">
+                    <span id="hint-line-text">Укажите фильтры и начните поиск</span>
+                </div>
 
-            <!-- SUGGESTED ACTION -->
-            <div id="action" class="block block-secondary" style="display: none">
-                <span id="action-text"></span>
-                <button id="action-btn"></button>
-            </div>
+                <!-- SUGGESTED ACTION -->
+                <div id="action" class="block block-secondary" style="display: none">
+                    <span id="action-text"></span>
+                    <button id="action-btn"></button>
+                </div>
 
-            <!-- RESULTS -->
-            <div class="table-row" style="height: 20px">
-                <div class="row-index table-header">№</div>
-                <div class="row-recruit-office table-header">Военкомат</div>
-                <div class="row-name table-header">ФИО</div>
-                <div class="row-birth table-header">г.р.</div>
-                <div class="row-personal-id table-header">Жетон</div>
-                <div class="row-local-command table-header">Команда</div>
-                <div class="row-comment table-header">Примечание</div>
-            </div>
-            <div id="results" style="overflow-y: scroll; overflow-x: hidden; height: 500px">
-                <!-- RESULTING ROWS HERE -->
-            </div>
+                <!-- RESULTS -->
+                <div class="table-row" style="height: 20px">
+                    <div class="row-index table-header">№</div>
+                    <div class="row-recruit-office table-header">Военкомат</div>
+                    <div class="row-name table-header">ФИО</div>
+                    <div class="row-birth table-header">г.р.</div>
+                    <div class="row-personal-id table-header">Жетон</div>
+                    <div class="row-local-command table-header">Команда</div>
+                    <div class="row-comment table-header">Примечание</div>
+                </div>
+                <div id="results" style="overflow-y: scroll; overflow-x: hidden; height: 500px">
+                    <!-- RESULTING ROWS HERE -->
+                </div>
 
-            <!-- APP TITLE -->
-            <div class="block block-primary" style="cursor: pointer" onclick="
-            alert('СПБД :: Сборный Пункт База Данных :: Версия 1.1.0\n' +
-             'Система автоматизации базы данных сборного пункта\n\n' +
-             'Разработка: Кулагин Юрий\n' +
-             'Почта: jkulvichi@gmail.com\n' +
-             'Телефон: +7 (916) 500-82-81\n\n' +
-             'Разработано для PHP 5.6 и InternetExplorer 6'
-              )
-            ">
-                <img style="float: left; margin: 0 10px 0 0" src="./client/assets/images/rodb-logo.jpg" width="30px"
-                     alt="spinner">
-                <div style="width: 500px; line-height: 30px; font-size: 10pt">
+                <!-- APP TITLE -->
+                <div class="block block-primary">
+                    <img style="float: left; margin: 0 10px 0 0" src="./client/assets/images/rodb-logo.jpg" width="30px"
+                         alt="spinner">
+                    <span style="line-height: 30px; font-size: 10pt; cursor: pointer" onclick="
+                    alert('СПБД :: Сборный Пункт База Данных :: Версия 1.1.0\n' +
+                     'Система автоматизации базы данных сборного пункта\n\n' +
+                     'Разработка: Кулагин Юрий\n' +
+                     'Почта: jkulvichi@gmail.com\n' +
+                     'Телефон: +7 (916) 500-82-81\n\n' +
+                     'Разработано для PHP 5.6 и InternetExplorer 6'
+                      )
+                    ">
                     СПБД v1.1.0 :: Пенза | О программе | Сообщить об ошибке
+                </span>
+                    <span id="show-total"
+                          style="line-height: 30px; font-size: 10pt; cursor: pointer; margin-left: 50px">
+                    Сводная таблица
+                </span>
+                </div>
+
+            </div>
+            <div class="page" name="total">
+                <div id="total-container">
+                    <!-- SUMMARY TOTAL TABLE HERE -->
                 </div>
             </div>
-
         </div>
     </center>
 </div>

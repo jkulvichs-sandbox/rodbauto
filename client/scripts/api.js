@@ -65,3 +65,15 @@ API.prototype.updateExtra = function (personID, extra, result) {
         }
     });
 }
+
+/**
+ * Get total table
+ * @param result
+ */
+API.prototype.getSummaryTotal = function (result) {
+    var url = this.baseURL + "/summary/total.php?rand=" + Math.random();
+    $.get(url, function (resp) {
+        log.info("API Summary Total", url, resp);
+        result(resp.data);
+    });
+}
