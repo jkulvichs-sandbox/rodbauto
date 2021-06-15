@@ -8,8 +8,8 @@ function API(errCallback, baseURL) {
         alert("Ошибка подключения. Проверьте своё интернет-соединение и обновите страницу");
     });
 
-    this.baseURL = baseURL || "/server/api";
-    // this.baseURL = baseURL || "/rodb/server/api";
+    //this.baseURL = baseURL || "/server/api";
+    this.baseURL = baseURL || "/rodb/server/api";
 }
 
 /**

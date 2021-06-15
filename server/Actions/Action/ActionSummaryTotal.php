@@ -72,7 +72,19 @@ namespace Action {
                 ];
             }
 
-            (new Response($rosum))->Reply();
+            // Reformatting rosum
+            $total = [];
+            foreach ($rosum as $roid => $r) {
+                $total[] = array_merge(
+                    $rosum[$roid],
+                    ["roid" => $roid]
+                );
+            }
+            usort($total, function ($a, $b) {
+                return $a["roid"] > $b["roid"] ? 1 : -1;
+            });
+
+            (new Response($total))->Reply();
         }
 
         /**
@@ -111,22 +123,3 @@ namespace Action {
     }
 
 }
-
-/* Response structure
-{
-    rows: [
-        {
-            recruitOffice: "08489495", // RO ID
-            registered: 600, // Manual written data
-            loaded: 300, // In DB
-            task: 700, // The task complete at value
-            days: [
-                {
-                    unix: "1621281600", // unix time in seconds
-                    count: 5
-                },
-            ]
-        },
-    ]
-}
- */

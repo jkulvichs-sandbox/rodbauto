@@ -317,13 +317,13 @@ App.prototype.calcTotal = function (total) {
     var deliveries = {};
 
     // Calc for deliveries matrix
-    for (var roid in total) {
-        var ro = total[roid];
-        for (var i = 0; i < ro.deliveries.length; i++) {
-            if (!deliveries[ro.deliveries[i].date]) {
-                deliveries[ro.deliveries[i].date] = {};
+    for (var i in total) {
+        var ro = total[i];
+        for (var j = 0; j < ro.deliveries.length; j++) {
+            if (!deliveries[ro.deliveries[j].date]) {
+                deliveries[ro.deliveries[j].date] = {};
             }
-            deliveries[ro.deliveries[i].date][roid] = ro.deliveries[i].count;
+            deliveries[ro.deliveries[j].date][ro.roid] = ro.deliveries[j].count;
         }
     }
 
@@ -365,40 +365,84 @@ App.prototype.calcTotal = function (total) {
         });
     }
 
+    var formatPrc = function (val) {
+        var prc = ((val * 100) | 0) / 100;
+        if (prc === (prc | 0)) {
+            return String(prc).padStart(2, "0") + ".00%";
+        } else {
+            var m = String(prc).match(/(\d+)\.(\d+)/);
+            var i = m[1].padStart(2, "0");
+            var d = m[2].substr(0, 2).padEnd(2, "0");
+            return i + "." + d + "%"
+        }
+        return prc;
+    }
     var calcPrc = function (val, total) {
-        var ratio = val/total;
-        return ((ratio * 10000)|0)/100;
+        var ratio = val / total;
+        return ((ratio * 10000) | 0) / 100;
     }
 
-    // Create table rows
-    for (var roid in total) {
-        var row = document.createElement("tr");
-        table.appendChild(row);
+    // Create table matrix
+    var matrix = [];
+    for (var i in total) {
+        var mRow = [];
 
-        ro = total[roid];
+        ro = total[i];
+        var roid = ro.roid;
 
         // Create table row cells
         {
-            var titles = [];
-            titles.push(ro.recruitOffice);
-            titles.push(ro.registered);
-            titles.push(ro.stored);
-            titles.push(calcPrc(ro.stored, ro.registered) + "%");
+            mRow.push(ro.recruitOffice);
+            mRow.push(ro.registered);
+            mRow.push(ro.stored);
+            mRow.push(formatPrc(calcPrc(ro.stored, ro.registered)));
             var dsum = 0;
             for (var date in deliveries) {
                 var d = deliveries[date][roid];
                 if (d) dsum += d;
-                titles.push(d);
+                mRow.push(d);
             }
-            titles.push(dsum);
-            titles.push(ro.taskPlan);
-            titles.push(calcPrc(dsum, ro.taskPlan) + "%");
-
-            titles.forEach(function (title) {
-                var td = document.createElement("td");
-                $(td).text(title);
-                row.appendChild(td);
-            });
+            mRow.push(dsum);
+            mRow.push(ro.taskPlan);
+            mRow.push(formatPrc(calcPrc(dsum, ro.taskPlan)));
+            matrix.push(mRow);
         }
     }
+
+    // Render & calculating table total row
+    {
+        // Calculating
+        var totalRow = ["ИТОГ"];
+
+        matrix.forEach(function (row) {
+            row.forEach(function (cell, iCell) {
+                if (!totalRow[iCell]) {
+                    totalRow[iCell] = 0;
+                }
+                var val = parseFloat(cell);
+                if (!Number.isNaN(val)) {
+                    totalRow[iCell] += val;
+                }
+            });
+        });
+
+        totalRow[3] = formatPrc(totalRow[3] / matrix.length);
+        totalRow[totalRow.length - 1] = formatPrc(totalRow[totalRow.length - 1] / matrix.length);
+
+        matrix.push(totalRow);
+    }
+
+    // Render table rows
+    matrix.forEach(function (r) {
+        var row = document.createElement("tr");
+        table.appendChild(row);
+        r.forEach(function (cell, iCell) {
+            var td = document.createElement("td");
+            if (iCell === 0) {
+                $(td).css("text-align", "left");
+            }
+            $(td).text(cell);
+            row.appendChild(td);
+        });
+    });
 }
